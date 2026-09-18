@@ -183,16 +183,16 @@ Each major topic will document:
 
 ### Foundations
 
-* [ ] Linear algebra review
-* [ ] Supervised learning fundamentals
-* [ ] Loss functions
-* [ ] Gradient descent
+* [x] Linear algebra review
+* [x] Supervised learning fundamentals
+* [x] Loss functions
+* [x] Gradient descent
 
 ### Softmax Regression
 
-* [ ] Understand logistic regression
+* [x] Understand logistic regression
 * [ ] Derive Softmax
-* [ ] Understand cross-entropy
+* [x] Understand cross-entropy
 * [ ] Derive gradients
 * [ ] NumPy implementation
 * [ ] Train on MNIST
