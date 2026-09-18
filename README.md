@@ -102,8 +102,6 @@ Contains experiment results, figures, and comparisons.
 Each model will follow the same workflow:
 
 ```text
-Question
-   ↓
 Theory
    ↓
 Mathematical formulation
