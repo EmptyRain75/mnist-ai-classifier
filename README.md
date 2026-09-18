@@ -73,7 +73,6 @@ mnist-ai-classifier/
 │   └── 03_softmax_regression.md
 │
 ├── notebooks/
-│   └── 01_softmax_regression.ipynb
 │
 ├── src/
 │
