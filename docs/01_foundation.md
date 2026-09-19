@@ -774,7 +774,7 @@ Generalize binary → multiclass
         ↓
 Softmax Regression
         ↓
-MNIST
+      MNIST
 ```
 
 ---
