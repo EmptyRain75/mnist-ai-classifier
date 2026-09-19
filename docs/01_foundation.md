@@ -202,27 +202,6 @@ z = wx + b
 
 Now the model can shift the decision boundary.
 
-For example:
-
-```text
-Without bias:
-
-        /
-       /
-      /
------/---------
-    /
-```
-
-With bias:
-
-```text
-       /
-      /
------/---------
-    /
-```
-
 The important idea is:
 
 > **Weights control the orientation/slope, while bias allows the model to shift the decision boundary.**
