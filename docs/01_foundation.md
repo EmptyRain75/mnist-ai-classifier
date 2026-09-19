@@ -623,11 +623,11 @@ For MNIST:
 ```text
 784 input features
        ↓
-Linear layer
+  Linear layer
        ↓
-10 logits
+   10 logits
        ↓
-Softmax
+    Softmax
        ↓
 10 probabilities
 ```
@@ -754,9 +754,9 @@ Logistic Regression
         ↓
 NumPy from scratch
         ↓
-Train
+      Train
         ↓
-Evaluate
+     Evaluate
         ↓
 Visualize decision boundary
         ↓
