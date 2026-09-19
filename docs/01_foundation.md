@@ -142,7 +142,7 @@ There are:
 
 Each row represents one sample.
 
-The corresponding labels are:
+The corresponding example labels are:
 
 ```text
 y = [0, 1, 1]
