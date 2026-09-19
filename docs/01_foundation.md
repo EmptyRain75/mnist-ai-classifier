@@ -15,9 +15,9 @@ Logistic Regression
     ↓
 Softmax Regression
     ↓
-MLP
+   MLP
     ↓
-CNN
+   CNN
     ↓
 Vision Transformer
 ```
