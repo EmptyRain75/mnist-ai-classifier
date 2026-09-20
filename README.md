@@ -406,11 +406,11 @@ The goal is to compare the manual implementation with the framework implementati
 * [x] Sigmoid
 * [x] Binary Cross Entropy
 * [x] Gradient derivation
-* [ ] NumPy implementation
-* [ ] Train on binary dataset
-* [ ] Visualize decision boundary
-* [ ] Evaluate model
-* [ ] Document results
+* [x] NumPy implementation
+* [x] Train on binary dataset
+* [x] Visualize decision boundary
+* [x] Evaluate model
+* [x] Document results
 
 ### Softmax Regression
 
