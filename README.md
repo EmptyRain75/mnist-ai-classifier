@@ -414,15 +414,14 @@ The goal is to compare the manual implementation with the framework implementati
 
 ### Softmax Regression
 
-* [ ] Multiclass classification
-* [ ] Softmax
-* [ ] Numerical stability
-* [ ] Cross Entropy
-* [ ] Gradient derivation
-* [ ] NumPy implementation
-* [ ] Train on MNIST
-* [ ] Evaluate model
-* [ ] Error analysis
+* [x] Multiclass classification
+* [x] Softmax
+* [x] Numerical stability
+* [x] Cross Entropy
+* [x] Gradient derivation
+* [x] NumPy implementation
+* [x] Train on MNIST
+* [x] Evaluate model
 * [ ] PyTorch implementation
 * [ ] NumPy vs PyTorch comparison
 
