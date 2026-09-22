@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document contains the minimum theory reused throughout the project.
+This document contains the minimum theory reused throughout the project. Read over some to know the gist of it.
 
 It is intentionally concise. Deeper derivations and model-specific details are kept in the corresponding documentation files.
 
