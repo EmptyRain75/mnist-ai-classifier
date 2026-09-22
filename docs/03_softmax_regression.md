@@ -20,6 +20,8 @@ The main purpose here is to explain what changes when binary Logistic Regression
 
 # 1. From Logistic Regression to Softmax Regression
 
+Softmax regression is the direct generalization of binary logistic regression to multi-class problems, which is why it is often called multinomial logistic regression.
+
 Binary Logistic Regression produces one logit:
 
 $$ z = x^T w + b $$
