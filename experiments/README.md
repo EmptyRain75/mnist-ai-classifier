@@ -2,7 +2,7 @@
 
 This folder contains structured experiments used to evaluate and compare the models developed in this project.
 
-The notebooks in `notebooks/` are primarily used for learning, implementation, and incremental experimentation. Because those experiments are performed while developing each model, they may be exploratory, incomplete, or focused on only one concept at a time.
+The notebooks in `notebooks/` are primarily used for learning, implementation, and incremental experimentation. Because those experiments are performed while developing each model, they may be exploratory, incomplete, or focused on only one concept at a time or just utter trash.
 
 The purpose of this folder is different.
 
