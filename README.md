@@ -422,11 +422,11 @@ The goal is to compare the manual implementation with the framework implementati
 * [x] NumPy implementation
 * [x] Train on MNIST
 * [x] Evaluate model
-* [ ] PyTorch implementation
-* [ ] NumPy vs PyTorch comparison
+* [x] PyTorch implementation
+* [x] NumPy vs PyTorch comparison
 
 ### Deep Learning Extensions
 
-* [ ] MLP
+* [x] MLP
 * [ ] CNN
 * [ ] Vision Transformer
