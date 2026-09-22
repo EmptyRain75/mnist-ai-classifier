@@ -2,657 +2,261 @@
 
 ## Purpose
 
-This document contains the minimum theoretical foundation needed before implementing Logistic Regression and Softmax Regression from scratch.
+This document contains the minimum theory reused throughout the project.
 
-The goal is not to relearn all of machine learning, but to establish a clear understanding of the components that will later be reused across the project.
-
-The project follows this progression:
+It is intentionally concise. Deeper derivations and model-specific details are kept in the corresponding documentation files.
 
 ```text
-Linear Model
+Foundations
     ↓
 Logistic Regression
     ↓
 Softmax Regression
     ↓
-   MLP
+MLP
     ↓
-   CNN
+CNN
     ↓
 Vision Transformer
 ```
 
 ---
 
-# 1. Supervised Learning
+# 1. Supervised Classification
 
-Supervised learning is a machine learning setting where the model learns from examples containing:
-
-* **Input** `X`
-* **Target/label** `Y`
-
-The model learns a function:
+In supervised learning, a model learns from input-label pairs:
 
 ```text
-X → Model → Prediction
+Input X
+  ↓
+Model
+  ↓
+Prediction
+  ↓
+Compare with target y
 ```
 
-For classification:
+For classification, the target is a discrete class.
 
-```text
-Image/features → Model → Class
-```
-
-For example:
-
-```text
-Input:
-[5.1, 3.5, 1.4, 0.2]
-
-Label:
-"Setosa"
-```
-
-During training, the model compares its prediction with the correct label and adjusts its parameters.
-
----
-
-# 2. Classification
-
-Classification means predicting a discrete category.
-
-Examples:
-
-```text
-Email → Spam / Not Spam
-Image → Cat / Dog
-MNIST → 0 / 1 / 2 / ... / 9
-```
-
-There are two important cases in this project.
-
-### Binary classification
-
-There are two possible classes:
-
-```text
-Class 0
-Class 1
-```
-
-Example:
-
-```text
-Pass / Fail
-Cat / Dog
-Spam / Not Spam
-```
-
-This is what we will use for the Logistic Regression experiment.
-
-### Multiclass classification
-
-There are more than two classes:
-
-```text
-0, 1, 2, ..., 9
-```
-
-This is what we will use for MNIST.
-
-The transition is important:
+This project uses:
 
 ```text
 Binary classification
-       ↓
-Logistic Regression
-       ↓
+→ Logistic Regression
+
 Multiclass classification
-       ↓
-Softmax Regression
-```
-
----
-
-# 3. Features and Labels
-
-Suppose we have a dataset with `N` samples and `D` features.
-
-We can represent the input as a matrix:
-
-```text
-X ∈ R^(N × D)
-```
-
-For example:
-
-```text
-X =
-[
-  x₁₁ x₁₂ x₁₃
-  x₂₁ x₂₂ x₂₃
-  x₃₁ x₃₂ x₃₃
-]
-```
-
-There are:
-
-* `N = 3` samples
-* `D = 3` features
-
-Each row represents one sample.
-
-The corresponding example labels are:
-
-```text
-y = [0, 1, 1]
+→ Softmax Regression and later models
 ```
 
 For MNIST:
 
 ```text
-N = number of images
-D = 28 × 28 = 784
+Input  = 28 × 28 grayscale image
+Target = digit 0–9
 ```
 
-Therefore, after flattening:
+After flattening:
 
-```text
-X ∈ R^(N × 784)
-```
+$$
+X \in \mathbb{R}^{N \times 784}
+$$
+
+where $N$ is the number of samples.
 
 ---
 
-# 4. Parameters
+# 2. Linear Model
 
-A model contains parameters that are learned during training.
+A basic linear model computes:
 
-For a simple linear model:
-
-```text
-z = Wx + b
-```
+$$
+Z = XW + b
+$$
 
 where:
 
-* `W` = weights
-* `b` = bias
-* `x` = input
-* `z` = output/logit
+- $X$ = input features
+- $W$ = learned weights
+- $b$ = learned bias
+- $Z$ = output scores / logits
 
-The training process finds values of `W` and `b` that produce useful predictions.
+The weights determine how input features contribute to the output.
 
----
+The bias allows the decision function to shift instead of being constrained to pass through the origin.
 
-# 5. Why Do We Need Bias?
-
-Consider:
-
-```text
-z = wx
-```
-
-The corresponding decision boundary is forced to pass through the origin.
-
-Adding a bias gives:
-
-```text
-z = wx + b
-```
-
-Now the model can shift the decision boundary.
-
-The important idea is:
-
-> **Weights control the orientation/slope, while bias allows the model to shift the decision boundary.**
-
-This becomes especially important when we move from one-dimensional examples to higher-dimensional classification.
-
----
-
-# 6. Linear Transformation
-
-The basic operation used by our models is:
-
-```text
-z = Wx + b
-```
-
-For one sample:
-
-```text
-x ∈ R^D
-W ∈ R^D
-b ∈ R
-```
-
-For multiple samples, we use matrix multiplication:
-
-```text
-Z = XW + b
-```
-
-For example, in MNIST:
+For MNIST Softmax Regression:
 
 ```text
 X : N × 784
 W : 784 × 10
 b : 10
+Z : N × 10
 ```
 
-Therefore:
-
-```text
-XW : N × 10
-```
-
-Each row of `XW` contains the scores for the 10 MNIST classes.
+Each row of $Z$ contains one score for each digit class.
 
 ---
 
-# 7. Logits
+# 3. Logits and Probabilities
 
-The values produced by the linear layer are called **logits**.
+The output of a linear layer is called a **logit**.
 
-For example:
-
-```text
-z = [2.1, -0.5, 4.2, 0.7, ...]
-```
-
-These are not probabilities.
-
-They are simply scores indicating how strongly the model currently associates the input with each class.
-
-For MNIST:
+Logits are scores, not probabilities.
 
 ```text
-logits:
-[2.1, -0.5, 4.2, 0.7, ...]
+Linear model
+    ↓
+Logits
+    ↓
+Probability transformation
 ```
 
-The largest value corresponds to the model's predicted class:
+For binary classification, Logistic Regression uses Sigmoid:
+
+$$
+\sigma(z)=\frac{1}{1+e^{-z}}
+$$
+
+For multiclass classification, Softmax converts the logits into class probabilities:
+
+$$
+p_k =
+\frac{e^{z_k}}
+{\sum_j e^{z_j}}
+$$
+
+Prediction is obtained from the largest output score:
 
 ```text
 prediction = argmax(logits)
 ```
 
-However, if we want probabilities, we need a transformation.
-
-For binary classification:
-
-```text
-logit → Sigmoid → probability
-```
-
-For multiclass classification:
-
-```text
-logits → Softmax → probabilities
-```
+For multiclass classification, `argmax(logits)` and `argmax(softmax(logits))` give the same class because Softmax preserves ordering.
 
 ---
 
-# 8. Activation Functions
+# 4. Loss Functions
 
-An activation function transforms the output of a model.
+A loss function measures how incorrect the model prediction is.
 
-For Logistic Regression, we use the sigmoid function:
+## Binary Cross Entropy
 
-```text
-σ(z) = 1 / (1 + e^(-z))
-```
+Used by Logistic Regression:
 
-Its output is between `0` and `1`.
+$$
+L =
+-\left[
+y\log(p)
++
+(1-y)\log(1-p)
+\right]
+$$
 
-Therefore:
+## Multiclass Cross Entropy
 
-```text
-z = 2.0
-↓
-sigmoid
-↓
-0.881
-```
+Used by Softmax Regression and later classifiers:
 
-This can be interpreted as a probability for the positive class.
+$$
+L = -\log(p_y)
+$$
 
-For example:
+where $p_y$ is the predicted probability of the correct class.
 
-```text
-P(y = 1 | x) = 0.881
-```
-
----
-
-# 9. Logistic Regression
-
-Logistic Regression combines a linear model with sigmoid:
-
-```text
-x
-↓
-Linear
-z = Wx + b
-↓
-Sigmoid
-p = σ(z)
-↓
-Probability
-```
-
-Mathematically:
-
-```text
-z = Wx + b
-
-p = σ(z)
-```
-
-The prediction can then be obtained using a threshold:
-
-```text
-if p ≥ 0.5:
-    class = 1
-else:
-    class = 0
-```
-
-The important point is:
-
-> Logistic Regression is still a linear classifier. The sigmoid converts the linear score into a probability.
+Training aims to minimize the average loss over the training data.
 
 ---
 
-# 10. Loss Function
+# 5. Gradients and Optimization
 
-During training, we need a way to measure how wrong the model is.
+A gradient measures how the loss changes with respect to a parameter.
 
-This is the **loss function**.
+Examples:
 
-For binary Logistic Regression, we use Binary Cross Entropy:
+$$
+\frac{\partial L}{\partial W}
+$$
 
-```text
-L = -[y log(p) + (1-y) log(1-p)]
-```
+$$
+\frac{\partial L}{\partial b}
+$$
 
-where:
+Gradient Descent updates the parameters in the direction that reduces the loss:
 
-* `y` = true label
-* `p` = predicted probability
+$$
+W \leftarrow W - \eta \frac{\partial L}{\partial W}
+$$
 
-Example:
+$$
+b \leftarrow b - \eta \frac{\partial L}{\partial b}
+$$
 
-```text
-True label = 1
-Prediction = 0.9
-```
+where $\eta$ is the learning rate.
 
-The loss is small.
-
-But:
-
-```text
-True label = 1
-Prediction = 0.01
-```
-
-The loss is very large.
-
-Therefore, the training objective is:
+The basic training cycle is:
 
 ```text
-Minimize loss
-```
-
----
-
-# 11. Gradient
-
-The gradient tells us how the loss changes when the parameters change.
-
-Conceptually:
-
-```text
-Parameter
+Forward pass
     ↓
-How does changing it affect the loss?
+Compute loss
+    ↓
+Compute gradients
+    ↓
+Update parameters
+    ↓
+Repeat
 ```
 
-For example:
-
-```text
-∂L/∂W
-```
-
-tells us how the loss changes with respect to the weights.
-
-Similarly:
-
-```text
-∂L/∂b
-```
-
-tells us how the loss changes with respect to the bias.
-
-The gradient therefore gives us the direction in which the parameters should be adjusted.
+This same structure remains even as the models become more complex.
 
 ---
 
-# 12. Gradient Descent
+# 6. Train, Validation, and Test
 
-Gradient descent updates the parameters in the direction that decreases the loss.
-
-The basic update rule is:
+The dataset is split according to purpose:
 
 ```text
-W ← W - η ∂L/∂W
+Training set
+→ learn model parameters
 
-b ← b - η ∂L/∂b
+Validation set
+→ compare hyperparameters and model choices
+
+Test set
+→ final evaluation
 ```
 
-where:
+The test set should not be used to make training or model-selection decisions.
 
-```text
-η = learning rate
-```
+---
 
-The learning rate controls the size of each update.
+# 7. Batches and Epochs
+
+Training data is usually divided into mini-batches.
+
+Important terms:
+
+- **Batch** — a subset of training samples
+- **Batch size** — number of samples in one batch
+- **Iteration / step** — one parameter update
+- **Epoch** — one complete pass through the training set
 
 Conceptually:
 
 ```text
-Large learning rate
-→ larger parameter updates
-
-Small learning rate
-→ smaller parameter updates
+Epoch
+ ├── Batch 1 → update
+ ├── Batch 2 → update
+ ├── Batch 3 → update
+ └── ...
 ```
 
-This will later become an experiment in the project.
+Mini-batch training is used throughout the MNIST stages.
 
 ---
 
-# 13. Training Loop
+# 8. Logistic Regression → Softmax Regression
 
-A basic machine learning training loop is:
-
-```text
-Initialize parameters
-
-Repeat:
-
-    1. Forward pass
-    2. Calculate loss
-    3. Calculate gradients
-    4. Update parameters
-```
-
-For Logistic Regression:
-
-```text
-X
-↓
-Linear
-z = XW + b
-↓
-Sigmoid
-p = sigmoid(z)
-↓
-Binary Cross Entropy
-↓
-Loss
-↓
-Gradient
-↓
-Update W and b
-```
-
-This same general structure will remain throughout the project.
-
----
-
-# 14. Train / Validation / Test
-
-A dataset is commonly divided into separate parts.
-
-### Training set
-
-Used to learn the parameters.
-
-```text
-Model sees training data
-→ calculates loss
-→ updates parameters
-```
-
-### Validation set
-
-Used to evaluate the model during development.
-
-It helps us compare:
-
-* learning rates
-* architectures
-* hyperparameters
-* training strategies
-
-without using the final test set.
-
-### Test set
-
-Used for the final evaluation.
-
-The model should not use test data to make training decisions.
-
-The general workflow is:
-
-```text
-Training data
-      ↓
-   Training
-      ↓
-Validation data
-      ↓
-Model selection / tuning
-      ↓
-Final model
-      ↓
-Test data
-      ↓
-Final evaluation
-```
-
----
-
-# 15. Batch Training
-
-Instead of processing the entire dataset at once, we can divide it into batches.
-
-For example:
-
-```text
-Dataset = 60,000 samples
-
-Batch size = 64
-
-Batch 1 → 64 samples
-Batch 2 → 64 samples
-Batch 3 → 64 samples
-...
-```
-
-The model calculates the gradient using each batch and updates its parameters.
-
-This is called **mini-batch gradient descent**.
-
-It will become useful when training the MNIST models.
-
----
-
-# 16. From Logistic Regression to Softmax Regression
-
-This is one of the most important transitions in the project.
-
-Logistic Regression handles:
-
-```text
-2 classes
-```
-
-using:
-
-```text
-Linear → Sigmoid → Probability
-```
-
-Softmax Regression extends the idea to:
-
-```text
-K classes
-```
-
-using:
-
-```text
-Linear → Softmax → Class probabilities
-```
-
-For MNIST:
-
-```text
-784 input features
-       ↓
-  Linear layer
-       ↓
-   10 logits
-       ↓
-    Softmax
-       ↓
-10 probabilities
-```
-
-For example:
-
-```text
-[0.01, 0.02, 0.80, 0.03, ..., 0.01]
-```
-
-The probabilities sum to approximately:
-
-```text
-1.0
-```
-
-and the largest probability determines the predicted class.
-
----
-
-# 17. What Changes and What Stays the Same?
-
-This modularity is an important design principle for the project.
-
-### Logistic Regression
+Logistic Regression performs binary classification:
 
 ```text
 Input
@@ -666,7 +270,7 @@ Probability
 Binary Cross Entropy
 ```
 
-### Softmax Regression
+Softmax Regression generalizes the same idea to multiple classes:
 
 ```text
 Input
@@ -680,144 +284,111 @@ Class probabilities
 Cross Entropy
 ```
 
-The fundamental training process remains:
+For MNIST:
 
 ```text
-Forward
+784 input features
+       ↓
+Linear
+       ↓
+10 logits
+       ↓
+Softmax
+       ↓
+10 probabilities
+```
+
+The main change is the output representation:
+
+```text
+Binary
+Sigmoid
+one probability
+
+        ↓
+
+Multiclass
+Softmax
+one probability per class
+```
+
+The overall training process remains the same.
+
+---
+
+# 9. Reusable Learning Pipeline
+
+The project treats models as combinations of reusable components:
+
+```text
+Data
+ ↓
+Preprocessing
+ ↓
+Representation / Model
+ ↓
+Output
  ↓
 Loss
  ↓
-Gradient
+Optimization
  ↓
-Update
-```
-
-Only some components change.
-
-This allows us to reuse much of the implementation.
-
----
-
-# 18. What We Do NOT Need Yet
-
-At this stage, we do not need to deeply study:
-
-* Convolution
-* Pooling
-* Attention
-* Transformers
-* Vision Transformers
-* CNN architectures
-* GPU optimization
-* Distributed training
-
-Those concepts will be introduced when the corresponding modules are added.
-
-The goal is to understand the current model completely before increasing complexity.
-
----
-
-# 19. Foundation → Implementation
-
-The concepts required for the first experiment are:
-
-```text
-Dataset
-   ↓
-Features + Labels
-   ↓
-Linear Model
-   ↓
-Weights + Bias
-   ↓
-Sigmoid
-   ↓
-Probability
-   ↓
-Binary Cross Entropy
-   ↓
-Gradient
-   ↓
-Gradient Descent
-   ↓
-Prediction
-   ↓
 Evaluation
 ```
 
-The first implementation will therefore be:
+Later models mainly change how the input is represented and transformed.
+
+For example:
 
 ```text
-Simple Binary Dataset
-        ↓
-Logistic Regression
-        ↓
-NumPy from scratch
-        ↓
-      Train
-        ↓
-     Evaluate
-        ↓
-Visualize decision boundary
-        ↓
-Experiment with hyperparameters
-        ↓
-Document results
-```
-
-After that:
-
-```text
-Logistic Regression
-        ↓
-Generalize binary → multiclass
-        ↓
 Softmax Regression
-        ↓
-      MNIST
+Linear representation
+
+MLP
+Nonlinear hidden representation
+
+CNN
+Spatial representation
+
+Vision Transformer
+Patch / attention representation
 ```
+
+This makes it easier to identify what is reused, replaced, or added at each stage.
 
 ---
 
-# 20. Key Takeaways
+# 10. Core Takeaways
 
-Before starting implementation, we should be able to explain:
+The essential concepts from this document are:
 
-1. What supervised learning is.
-2. What classification means.
-3. The difference between binary and multiclass classification.
-4. What features and labels are.
-5. What weights and bias represent.
-6. Why bias is needed.
-7. What a linear transformation does.
-8. What logits are.
-9. How sigmoid converts a logit into a probability.
-10. What a loss function measures.
-11. What a gradient represents.
-12. How gradient descent updates parameters.
-13. What a training loop does.
-14. The difference between training, validation, and test data.
-15. Why Logistic Regression can be extended to Softmax Regression.
-16. Which parts of the pipeline can be reused between models.
+1. Supervised classification learns from input-label pairs.
+2. A linear model computes $Z = XW + b$.
+3. Logits are scores, not probabilities.
+4. Sigmoid is used for binary probability output.
+5. Softmax is used for multiclass probability output.
+6. Loss measures prediction error.
+7. Gradients show how parameters affect the loss.
+8. Gradient-based optimization updates parameters to reduce loss.
+9. Training, validation, and test sets have different roles.
+10. Mini-batch training performs repeated parameter updates.
+11. Logistic Regression extends naturally into Softmax Regression.
+12. The same training pipeline is reused as the project moves toward MLP, CNN, and Vision Transformer.
 
-The most important conceptual chain is:
+The central learning loop is:
 
 ```text
 Input
   ↓
-Linear transformation
+Model
   ↓
 Logits
   ↓
-Probability transformation
-  ↓
-Prediction
-  ↓
 Loss
   ↓
-Gradient
+Gradients
   ↓
 Parameter update
 ```
 
-This chain will remain the foundation of the project even as the model becomes significantly more complex.
+Everything later in the project builds on this structure.
