@@ -2,7 +2,7 @@
 
 This folder contains more structured experiments performed after the models have been implemented and understood.
 
-The experiments inside the learning notebooks are often exploratory and are mainly used to understand one concept at a time.
+The experiments inside the learning notebooks are often exploratory and are mainly used to understand one concept at a time, or just utter trash.
 
 The purpose of this folder is to test the models more systematically and show a broader picture of their behavior.
 
