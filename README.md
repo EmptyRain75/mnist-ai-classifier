@@ -424,6 +424,7 @@ The goal is to compare the manual implementation with the framework implementati
 * [x] Evaluate model
 * [x] PyTorch implementation
 * [x] NumPy vs PyTorch comparison
+* [ ] More Experiments
 
 ### Deep Learning Extensions
 
