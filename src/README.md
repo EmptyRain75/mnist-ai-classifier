@@ -1,6 +1,6 @@
 # Source Code
 
-This folder contains the clean and reusable implementations extracted from the learning notebooks.
+This folder contains the clean and reusable implementations extracted from the learning notebooks, and fixed so it can directly run and print results.
 
 The goal of `src/` is to keep only the core model, training, evaluation, and utility code without notebook explanations, plots, or exploratory experiment cells.
 
