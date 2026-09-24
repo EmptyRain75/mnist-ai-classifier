@@ -1,6 +1,6 @@
 # Logistic Regression from Scratch
 
-This document contains the deeper mathematical foundations behind the Logistic Regression implementation used in `src/logistic_regression.py`.
+This document contains the deeper mathematical foundations behind the Logistic Regression implementation.
 
 The notebook `notebooks/01_logistic_regression.ipynb` is intended to be the readable implementation and experiment walkthrough. This document keeps the longer mathematical derivations here so that the notebook can remain focused on implementation, observations, and experiments.
 
