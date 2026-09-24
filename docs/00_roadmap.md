@@ -21,9 +21,9 @@ Softmax Regression
     ↓
 PyTorch Softmax Regression
     ↓
-MLP
+   MLP
     ↓
-CNN
+   CNN
     ↓
 Vision Transformer
 ```
