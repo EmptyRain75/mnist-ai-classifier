@@ -4,6 +4,8 @@ This document contains the deeper mathematical foundations behind the Logistic R
 
 The notebook `notebooks/01_logistic_regression.ipynb` is intended to be the readable implementation and experiment walkthrough. This document keeps the longer mathematical derivations here so that the notebook can remain focused on implementation, observations, and experiments.
 
+You should learn in notebooks, then refer to doc if there is something you don't understand.
+
 ---
 
 ## 1. Problem Definition
