@@ -519,34 +519,14 @@ The development notebook investigates:
 ```text
 Hidden-layer width
 Network depth
-Parameter count
-Training vs validation accuracy
 ```
-
-Observed validation accuracy for hidden width:
-
-```text
-H = 32  → 95.82%
-H = 128 → 97.11%
-H = 512 → 97.50%
-```
-
-Depth experiment:
-
-```text
-1 hidden layer  → 97.11%
-2 hidden layers → 97.18%
-3 hidden layers → 97.10%
-```
-
-These experiments demonstrate that increasing model capacity does not necessarily produce proportional improvements in generalization.
 
 ## Deliverables
 
 ```text
-notebooks/03_mlp.ipynb
+notebooks/04_mlp.ipynb
 docs/04_mlp.md
-src/mlp.py
+src/04_mlp.py
 ```
 
 ## Key Transition
