@@ -387,6 +387,7 @@ Softmax
   ↓
 Cross Entropy
 ```
+Just imagine Single layer Perceptron.
 
 ## Concepts
 
