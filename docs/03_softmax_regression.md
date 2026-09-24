@@ -6,6 +6,8 @@ The notebook `notebooks/02_softmax_regression.ipynb` is the main learning and ex
 
 This document focuses on the theory and derivations that would make the notebook too dense.
 
+You should learn from the notebook, then if don't understand anything refer to the doc.
+
 It assumes familiarity with the Logistic Regression foundations developed in `docs/02_logistic_regression.md`, including:
 
 - linear models
