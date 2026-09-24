@@ -241,6 +241,7 @@ Next Model
 ```
 
 ---
+*Note: while doing this, I was in a rush to get the basics down, so the $experiments$ are left for later.
 
 # 5. Stage 0 — Foundations
 
