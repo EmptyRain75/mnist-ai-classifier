@@ -7,9 +7,9 @@ The main priority is to first build and understand the basic architectures:
 ```text
 Softmax Regression
         ↓
-MLP
+        MLP
         ↓
-CNN
+        CNN
         ↓
 Vision Transformer
 ```
