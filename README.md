@@ -138,14 +138,14 @@ docs/00_roadmap.md
 
 ### CNN — Basic Implementation
 
-* [ ] Study convolution, kernels, feature maps, stride, padding, and pooling
-* [ ] Build a basic CNN in PyTorch
-* [ ] Keep the original 2D image representation
-* [ ] Train the CNN on MNIST
-* [ ] Evaluate accuracy and confusion matrix
-* [ ] Compare CNN against MLP and Softmax Regression
-* [ ] Document the basic CNN architecture
-* [ ] Refactor basic CNN components into `src/`
+* [x] Study convolution, kernels, feature maps, stride, padding, and pooling
+* [x] Build a basic CNN in PyTorch
+* [x] Keep the original 2D image representation
+* [x] Train the CNN on MNIST
+* [x] Evaluate accuracy and confusion matrix
+* [x] Compare CNN against MLP and Softmax Regression
+* [x] Document the basic CNN architecture
+* [x] Refactor basic CNN components into `src/`
 
 ### CNN — Optimization & Experiments
 
