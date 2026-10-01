@@ -4,7 +4,7 @@
 
 This document is the **theory and mathematics companion** to `notebooks/05_cnn.ipynb`.
 
-The notebook is intentionally simple:
+The notebook stays intentionally simple:
 
 ```text
 Load MNIST
@@ -18,32 +18,43 @@ Evaluate
 Visualize predictions / feature maps
 ```
 
-It focuses on understanding the architecture and keeping the implementation readable.
+The notebook answers:
 
-This document goes deeper into what the notebook leaves to PyTorch:
+> **How do I build and train this CNN?**
 
-- the mathematics of convolution,
-- stride, padding, channels, and output shapes,
+This document answers:
+
+> **What is each layer calculating, and what does `loss.backward()` do mathematically?**
+
+It covers:
+
+- convolution,
+- stride and padding,
+- channels and feature maps,
 - parameter counting,
-- ReLU and pooling calculations,
-- the final linear classifier,
+- ReLU,
+- pooling,
+- flattening,
+- the linear classifier,
 - Softmax + Cross Entropy,
-- and especially the **backward pass through a CNN**.
+- and the backward pass through every important operation.
 
-The primary forward-pass reference is:
+### Reference
+
+The main forward-pass reference is:
 
 > **AI VIET NAM – AI Course 2025, _CNNs: Step-by-Step Examples_**  
 > Nguyễn Phúc Thịnh and Đinh Quang Vinh
 
-That reading explains CNN motivation, convolution, stride, padding, pooling, flattening, channels, and a manual CNN forward pass.
+The reference explains CNN motivation, convolution, stride, padding, pooling, flattening, channels, and a manual CNN forward pass.
 
-The **backward-pass derivations in this document are an added extension**. The reference reading focuses on the forward calculations rather than deriving convolution gradients.
+The **backward-pass derivations in this document are an added extension** to explain the calculations that PyTorch autograd performs automatically.
 
 ---
 
-# 1. From MLP to CNN
+## 1. From MLP to CNN
 
-The previous MLP receives an MNIST image and immediately flattens it:
+An MLP normally flattens an image before processing it:
 
 ```text
 1 × 28 × 28
@@ -55,17 +66,17 @@ Flatten
 Fully Connected Layers
 ```
 
-Flattening does not destroy pixel values, but it removes the image's **explicit 2D organization** from the representation used by the next layer.
+Flattening preserves the pixel values, but the next layer no longer receives them as an explicit 2D grid.
 
-A CNN instead keeps the image as a spatial tensor:
+A CNN keeps the image as a spatial tensor:
 
 ```text
 Channels × Height × Width
 ```
 
-and performs operations directly on local image regions.
+and processes local regions directly.
 
-The important CNN ideas are:
+The main CNN ideas are:
 
 ```text
 Local connectivity
@@ -77,13 +88,13 @@ Spatial feature maps
 Hierarchical feature extraction
 ```
 
-A CNN should therefore **not** be defined as merely:
+A CNN should therefore **not** be defined as:
 
 ```text
 MLP + convolution preprocessing
 ```
 
-Our particular model does have:
+Our particular model has:
 
 ```text
 Convolutional feature extractor
@@ -93,21 +104,40 @@ Flatten
 Linear classifier
 ```
 
-but the defining idea of a CNN is the use of convolutional processing with local connectivity and shared parameters.
+but CNNs are defined by their convolutional processing, not by the presence of a fully connected classifier at the end.
 
-Other CNNs may use:
+### Architectural progression
 
-- deeper convolutional blocks,
-- global average pooling,
-- convolutional classification heads,
-- residual blocks,
-- or other structures.
+```text
+Softmax Regression
+Raw pixels
+    ↓
+Linear mapping
+
+        ↓ add nonlinear hidden representation
+
+MLP
+Flattened pixels
+    ↓
+Fully connected nonlinear representation
+
+        ↓ introduce spatially structured operations
+
+CNN
+Image / feature maps
+    ↓
+Local convolutional processing
+    ↓
+Hierarchical spatial representation
+    ↓
+Classification
+```
 
 ---
 
-# 2. CNN Architecture Used in This Project
+## 2. Baseline CNN Used in This Project
 
-The notebook uses the following baseline:
+The notebook uses:
 
 ```text
 Input
@@ -138,13 +168,13 @@ Linear(3136 → 10)
 10 logits
 ```
 
-For a batch of size \(N\), PyTorch stores image tensors as:
+For a batch of size \(N\), PyTorch stores images as:
 
 \[
 (N,\ C,\ H,\ W)
 \]
 
-so MNIST enters the model as:
+MNIST therefore enters the model as:
 
 \[
 (N,\ 1,\ 28,\ 28)
@@ -152,46 +182,55 @@ so MNIST enters the model as:
 
 where:
 
-- \(N\) = batch size,
-- \(C=1\) = grayscale channel,
-- \(H=W=28\).
+- \(N\): batch size,
+- \(C=1\): grayscale channel,
+- \(H=W=28\): image height and width.
+
+### Shape tracking
+
+| Stage | Output shape |
+|---|---|
+| Input | \(N\times1\times28\times28\) |
+| Conv1 | \(N\times32\times28\times28\) |
+| ReLU1 | \(N\times32\times28\times28\) |
+| Pool1 | \(N\times32\times14\times14\) |
+| Conv2 | \(N\times64\times14\times14\) |
+| ReLU2 | \(N\times64\times14\times14\) |
+| Pool2 | \(N\times64\times7\times7\) |
+| Flatten | \(N\times3136\) |
+| Linear | \(N\times10\) |
 
 ---
 
-# 3. Convolution — Forward Pass
+## 3. Convolution — Forward Pass
 
-## 3.1 Local calculation
+### 3.1 Single-channel calculation
 
 A convolutional layer uses a small learnable matrix called a **kernel** or **filter**.
 
-For a single input channel, one output value is calculated from a local patch:
+For one input channel, stride \(1\), and no padding:
 
 \[
 Y_{i,j}
 =
 \sum_{u=0}^{K_H-1}
 \sum_{v=0}^{K_W-1}
-W_{u,v}
-X_{i+u,j+v}
+W_{u,v}X_{i+u,j+v}
 +b
 \]
 
 where:
 
-- \(X\) = input,
-- \(W\) = kernel weights,
-- \(b\) = bias,
-- \(Y\) = output feature map.
+- \(X\): input,
+- \(W\): kernel,
+- \(b\): bias,
+- \(Y\): output feature map.
 
-In deep-learning libraries, the operation normally called "convolution" is technically **cross-correlation** because the kernel is not flipped before multiplication.
+Deep-learning libraries normally implement this as **cross-correlation**: the kernel is not flipped before the forward multiplication.
 
-That is also the convention used by PyTorch `nn.Conv2d`.
+### 3.2 Manual example
 
----
-
-## 3.2 Small manual example
-
-The reference reading uses:
+Let:
 
 \[
 X=
@@ -199,12 +238,8 @@ X=
 1&2&3\\
 4&5&6\\
 7&8&9
-\end{bmatrix}
-\]
-
-and
-
-\[
+\end{bmatrix},
+\qquad
 W=
 \begin{bmatrix}
 1&0\\
@@ -212,45 +247,19 @@ W=
 \end{bmatrix}
 \]
 
-with no padding, stride \(1\), and no bias.
+with stride \(1\), no padding, and no bias.
 
-At the top-left position:
+The top-left output is:
 
 \[
 Y_{0,0}
 =
 1(1)+2(0)+4(0)+5(1)
-=6
-\]
-
-Move the kernel one position right:
-
-\[
-Y_{0,1}
 =
-2(1)+3(0)+5(0)+6(1)
-=8
+6
 \]
 
-Move down:
-
-\[
-Y_{1,0}
-=
-4(1)+5(0)+7(0)+8(1)
-=12
-\]
-
-and:
-
-\[
-Y_{1,1}
-=
-5(1)+6(0)+8(0)+9(1)
-=14
-\]
-
-Therefore:
+Moving the same kernel across the input gives:
 
 \[
 Y=
@@ -260,31 +269,29 @@ Y=
 \end{bmatrix}
 \]
 
-This is the essential convolution calculation:
+The important point is that **the same kernel is reused at every position**.
+
+That is **weight sharing**.
 
 ```text
-Select local patch
-      ↓
-Element-wise multiply with kernel
-      ↓
+Input patch
+    ↓
+Element-wise multiplication with kernel
+    ↓
 Sum
-      ↓
+    ↓
 Add bias
-      ↓
+    ↓
 One feature-map value
 ```
 
-The same kernel is then reused at every spatial position.
-
-That reuse is **weight sharing**.
-
 ---
 
-# 4. Stride, Padding, and Output Size
+## 4. Stride, Padding, Channels, and Output Size
 
-## 4.1 Stride
+### 4.1 Stride
 
-Stride determines how far the kernel moves.
+Stride controls how far the kernel moves.
 
 ```text
 stride = 1
@@ -296,31 +303,25 @@ stride = 2
 
 A larger stride usually produces a smaller output.
 
----
+### 4.2 Padding
 
-## 4.2 Padding
-
-Padding adds values, normally zeros, around the input.
+Padding adds values, usually zeros, around the input.
 
 For example:
 
 ```text
-Original 4 × 4
-      ↓
-padding = 1
-      ↓
-Padded 6 × 6
+4 × 4 input
+    ↓ padding = 1
+6 × 6 padded input
 ```
 
-Padding is useful because it can:
+Padding can:
 
 - preserve spatial size,
 - allow border pixels to participate in more convolution windows,
 - prevent feature maps from shrinking too quickly.
 
----
-
-## 4.3 Output-size formula
+### 4.3 Output-size formula
 
 For height:
 
@@ -344,7 +345,7 @@ W_{\text{out}}
 +1
 \]
 
-For the first convolution in our model:
+For the first convolution:
 
 ```text
 Input   = 28
@@ -363,7 +364,7 @@ H_{\text{out}}
 28
 \]
 
-and similarly:
+and:
 
 \[
 W_{\text{out}}=28
@@ -379,13 +380,9 @@ Conv2d(1 → 32, 3×3, padding=1)
 32 × 28 × 28
 ```
 
----
+### 4.4 Multiple input channels
 
-# 5. Channels and Multiple Filters
-
-## 5.1 Input channels
-
-A grayscale MNIST image has:
+A grayscale image has:
 
 \[
 C_{\text{in}}=1
@@ -397,49 +394,31 @@ An RGB image has:
 C_{\text{in}}=3
 \]
 
-A convolutional kernel always spans **all input channels**.
+A convolutional filter spans **all input channels**.
 
-If the input has 3 channels and the spatial kernel is \(3\times3\), one filter has shape:
-
-\[
-3\times3\times3
-\]
-
-or in PyTorch order:
-
-```text
-Cin × KH × KW
-```
-
----
-
-## 5.2 General multi-channel convolution
-
-For output channel \(o\):
+For a general multi-channel convolution:
 
 \[
 Y_{o,i,j}
 =
-b_o
-+
+b_o+
 \sum_{c=1}^{C_{\text{in}}}
 \sum_{u=0}^{K_H-1}
 \sum_{v=0}^{K_W-1}
-W_{o,c,u,v}
-X_{c,i+u,j+v}
+W_{o,c,u,v}X_{c,i+u,j+v}
 \]
 
-One filter therefore combines information across **all input channels** and produces **one output feature map**.
+where \(o\) indexes the output channel.
 
-If we want 32 output channels, we need 32 different filters.
+One filter produces one output feature map.
 
-Thus:
+Therefore:
 
 ```text
 1 input channel
-      ↓
-32 different filters
-      ↓
+    ↓
+32 filters
+    ↓
 32 output feature maps
 ```
 
@@ -447,9 +426,9 @@ For the second convolution:
 
 ```text
 32 input channels
-      ↓
+    ↓
 64 filters
-      ↓
+    ↓
 64 output feature maps
 ```
 
@@ -457,42 +436,20 @@ Each of those 64 filters spans all 32 input channels.
 
 ---
 
-# 6. Convolution Parameter Count
+## 5. Parameter Counting
 
-For a standard `Conv2d` layer:
-
-\[
-\text{weights}
-=
-C_{\text{out}}
-\times
-C_{\text{in}}
-\times
-K_H
-\times
-K_W
-\]
-
-and if bias is enabled:
+For a standard `Conv2d` layer with bias:
 
 \[
-\text{biases}=C_{\text{out}}
-\]
-
-so:
-
-\[
-\boxed{
 \text{parameters}
 =
 C_{\text{out}}
 (C_{\text{in}}K_HK_W+1)
-}
 \]
 
----
+The \(+1\) represents one bias per output channel.
 
-## 6.1 First convolution
+### Conv1
 
 ```text
 Conv2d(1 → 32, 3×3)
@@ -501,9 +458,7 @@ Conv2d(1 → 32, 3×3)
 Weights:
 
 \[
-32\times1\times3\times3
-=
-288
+32\times1\times3\times3=288
 \]
 
 Biases:
@@ -518,9 +473,7 @@ Total:
 \boxed{320}
 \]
 
----
-
-## 6.2 Second convolution
+### Conv2
 
 ```text
 Conv2d(32 → 64, 3×3)
@@ -529,9 +482,7 @@ Conv2d(32 → 64, 3×3)
 Weights:
 
 \[
-64\times32\times3\times3
-=
-18,432
+64\times32\times3\times3=18,432
 \]
 
 Biases:
@@ -546,17 +497,50 @@ Total:
 \boxed{18,496}
 \]
 
-Notice that the same \(3\times3\) weights are reused across the whole image.
+### Linear classifier
 
-The number of parameters does **not** depend on the image width and height.
+The final feature vector has:
 
-That is one major advantage of parameter sharing.
+\[
+64\times7\times7=3136
+\]
+
+values.
+
+For:
+
+```text
+Linear(3136 → 10)
+```
+
+the parameter count is:
+
+\[
+3136\times10+10
+=
+31,370
+\]
+
+### Total
+
+| Layer | Parameters |
+|---|---:|
+| Conv1 | 320 |
+| Conv2 | 18,496 |
+| Linear | 31,370 |
+| **Total** | **50,186** |
+
+ReLU, MaxPool, and Flatten have no trainable parameters.
+
+A major advantage of convolution is that the kernel parameters are reused across the image. The parameter count therefore does not grow with the number of spatial positions at which a kernel is applied.
 
 ---
 
-# 7. ReLU
+## 6. ReLU, Pooling, and Flatten
 
-After convolution, the notebook applies:
+### 6.1 ReLU
+
+ReLU is:
 
 \[
 \operatorname{ReLU}(x)=\max(0,x)
@@ -566,23 +550,11 @@ Example:
 
 \[
 [-2,\ 3,\ -1,\ 5]
-\]
-
-becomes:
-
-\[
+\rightarrow
 [0,\ 3,\ 0,\ 5]
 \]
 
-ReLU adds nonlinearity.
-
-Without nonlinear activations, stacking multiple linear operations would still collapse into an overall linear transformation.
-
----
-
-## 7.1 ReLU derivative
-
-The derivative used during backpropagation is:
+Its derivative is:
 
 \[
 \operatorname{ReLU}'(x)
@@ -593,307 +565,166 @@ The derivative used during backpropagation is:
 \end{cases}
 \]
 
-Therefore, if the incoming gradient is \(G\):
+If the incoming gradient is \(G\):
 
 \[
 \boxed{
 \frac{\partial L}{\partial x}
 =
-G\cdot \mathbf{1}[x>0]
+G\odot\mathbf{1}[x>0]
 }
 \]
 
-Interpretation:
+where \(\odot\) denotes element-wise multiplication.
 
-```text
-Positive pre-activation
-→ gradient passes through
+At \(x=0\), ReLU is not differentiable in the strict mathematical sense; PyTorch uses a gradient of zero there.
 
-Negative pre-activation
-→ gradient becomes zero
-```
+### 6.2 Max Pooling
 
-At exactly \(x=0\), ReLU is not mathematically differentiable; implementations use a chosen subgradient convention. PyTorch uses zero there.
-
----
-
-# 8. Pooling
-
-Pooling reduces spatial resolution.
-
-The notebook uses:
-
-```text
-MaxPool2d(kernel_size=2)
-```
-
-With the default stride equal to the kernel size, a \(2\times2\) window reduces:
-
-```text
-28 × 28
-   ↓
-14 × 14
-```
-
-and later:
-
-```text
-14 × 14
-   ↓
-7 × 7
-```
-
-Pooling has **no learnable weights**.
-
----
-
-## 8.1 Max Pooling forward calculation
-
-Suppose a pooling window is:
+For:
 
 \[
+A=
 \begin{bmatrix}
 5&2\\
 3&7
 \end{bmatrix}
 \]
 
-Then:
+a \(2\times2\) MaxPool produces:
 
 \[
-\max(5,2,3,7)=7
+P=7
 \]
 
-so the pooled output is:
-
-\[
-7
-\]
-
-The reference reading uses this same idea to reduce feature maps while retaining the strongest response in each region.
-
----
-
-## 8.2 Average Pooling
-
-Average Pooling instead computes:
-
-\[
-P
-=
-\frac{1}{K_HK_W}
-\sum_{\text{window}} X
-\]
-
-For:
-
-\[
-\begin{bmatrix}
-2&4\\
-6&8
-\end{bmatrix}
-\]
-
-the result is:
-
-\[
-\frac{2+4+6+8}{4}=5
-\]
-
-Our baseline does not use Average Pooling, but the distinction is useful:
+The baseline uses:
 
 ```text
-Max Pooling
-→ preserve strongest response
+28 × 28
+   ↓ MaxPool2d(2)
+14 × 14
 
-Average Pooling
-→ preserve average response
+14 × 14
+   ↓ MaxPool2d(2)
+7 × 7
 ```
 
----
+MaxPool has no learnable parameters.
 
-# 9. Flatten
+#### MaxPool backward
 
-After the second pooling layer, the tensor has shape:
+Suppose:
+
+\[
+\frac{\partial L}{\partial P}=g
+\]
+
+Because \(7\) was the maximum:
+
+\[
+\boxed{
+\frac{\partial L}{\partial A}
+=
+\begin{bmatrix}
+0&0\\
+0&g
+\end{bmatrix}
+}
+\]
+
+The gradient is routed to the position selected during the forward pass.
+
+If pooling windows overlap, contributions can accumulate.
+
+### 6.3 Average Pooling
+
+Average Pooling computes:
+
+\[
+P=
+\frac{1}{K_HK_W}
+\sum_{\text{window}}X
+\]
+
+It is not used in this baseline, but it differs from MaxPool conceptually:
+
+```text
+MaxPool
+→ keep the strongest response
+
+AveragePool
+→ keep the average response
+```
+
+### 6.4 Flatten
+
+After the second pooling layer:
 
 \[
 64\times7\times7
+\rightarrow
+3136
 \]
 
-Flatten converts it into:
+Flatten changes only the shape.
 
-\[
-64\cdot7\cdot7=3136
-\]
-
-features.
+Forward:
 
 ```text
 64 × 7 × 7
     ↓
-Flatten
-    ↓
 3136
 ```
 
-Flatten has:
+Backward:
 
-\[
-\boxed{0\text{ trainable parameters}}
-\]
+```text
+3136-gradient
+    ↓ reshape
+64 × 7 × 7 gradient
+```
 
-It only changes the tensor's shape.
+Flatten has no parameters and performs no learned transformation.
 
 ---
 
-# 10. Linear Classifier
+## 7. Linear Classifier, Softmax, and Cross Entropy
 
-The final classifier is:
+### 7.1 Linear classifier
 
-```python
-nn.Linear(64 * 7 * 7, 10)
-```
-
-For one example, let:
+Let:
 
 \[
 f\in\mathbb{R}^{3136}
 \]
 
-be the flattened CNN features.
+be the flattened CNN feature vector.
 
-The logits are:
+The final layer computes:
 
 \[
 z=Wf+b
 \]
 
-where:
+with:
 
 \[
-W\in\mathbb{R}^{10\times3136}
-\]
-
-and:
-
-\[
+W\in\mathbb{R}^{10\times3136},
+\qquad
 b\in\mathbb{R}^{10}
 \]
 
-Therefore:
+so:
 
 \[
 z\in\mathbb{R}^{10}
 \]
 
-One logit is produced for each MNIST class.
+The ten values are **logits**, one for each MNIST class.
 
----
+### 7.2 Softmax
 
-## 10.1 Linear-layer parameter count
-
-Weights:
-
-\[
-10\times3136
-=
-31,360
-\]
-
-Biases:
-
-\[
-10
-\]
-
-Total:
-
-\[
-\boxed{31,370}
-\]
-
----
-
-# 11. Total Parameters in the Baseline CNN
-
-The complete model has:
-
-| Layer | Parameters |
-|---|---:|
-| Conv1 | 320 |
-| Conv2 | 18,496 |
-| Linear | 31,370 |
-| **Total** | **50,186** |
-
-Therefore:
-
-\[
-\boxed{
-\text{Total trainable parameters}=50,186
-}
-\]
-
-Pooling, ReLU, and Flatten contribute no trainable parameters.
-
----
-
-# 12. Forward Shape Tracking
-
-For batch size \(N\):
-
-```text
-Input
-N × 1 × 28 × 28
-
-↓ Conv1
-
-N × 32 × 28 × 28
-
-↓ ReLU
-
-N × 32 × 28 × 28
-
-↓ Pool1
-
-N × 32 × 14 × 14
-
-↓ Conv2
-
-N × 64 × 14 × 14
-
-↓ ReLU
-
-N × 64 × 14 × 14
-
-↓ Pool2
-
-N × 64 × 7 × 7
-
-↓ Flatten
-
-N × 3136
-
-↓ Linear
-
-N × 10
-```
-
-This shape sequence is exactly what the notebook implements.
-
----
-
-# 13. Softmax and Cross Entropy
-
-The model outputs **logits**, not probabilities.
-
-For one example:
-
-\[
-z=
-[z_1,z_2,\ldots,z_{10}]
-\]
-
-Softmax converts logits to probabilities:
+Softmax converts logits into probabilities:
 
 \[
 p_k
@@ -902,13 +733,15 @@ p_k
 {\sum_j e^{z_j}}
 \]
 
-so:
+with:
 
 \[
 \sum_k p_k=1
 \]
 
-For one-hot target vector \(y\), Cross Entropy is:
+### 7.3 Cross Entropy
+
+For one-hot target vector \(y\):
 
 \[
 L
@@ -928,39 +761,20 @@ PyTorch's:
 nn.CrossEntropyLoss()
 ```
 
-combines the equivalent log-Softmax and negative log-likelihood operations internally.
+expects raw logits and internally performs the equivalent of log-Softmax followed by negative log-likelihood.
 
-Therefore the notebook correctly sends raw logits directly into the loss:
+Therefore the notebook should use:
 
 ```python
 logits = model(images)
 loss = criterion(logits, labels)
 ```
 
-No explicit Softmax should be placed in the model during training.
+and should **not** apply Softmax inside the model before `CrossEntropyLoss`.
 
----
+### 7.4 Softmax + Cross Entropy gradient
 
-# 14. The Important Softmax + Cross Entropy Gradient
-
-This derivative begins the backward pass.
-
-Starting from:
-
-\[
-p_k
-=
-\frac{e^{z_k}}
-{\sum_j e^{z_j}}
-\]
-
-and:
-
-\[
-L=-\sum_k y_k\log p_k
-\]
-
-we can rewrite the loss as:
+For one sample:
 
 \[
 L
@@ -970,20 +784,17 @@ L
 \log\left(\sum_j e^{z_j}\right)
 \]
 
-for a one-hot target whose entries sum to 1.
-
-Differentiate with respect to logit \(z_k\):
+Differentiating with respect to \(z_k\):
 
 \[
 \frac{\partial L}{\partial z_k}
 =
 -y_k
 +
-\frac{e^{z_k}}
-{\sum_j e^{z_j}}
+\frac{e^{z_k}}{\sum_j e^{z_j}}
 \]
 
-therefore:
+Therefore:
 
 \[
 \boxed{
@@ -993,23 +804,9 @@ p_k-y_k
 }
 \]
 
-This result is extremely important.
+This is the gradient that starts the backward pass.
 
-For the correct class:
-
-```text
-y = 1
-→ gradient = predicted_probability - 1
-```
-
-For every incorrect class:
-
-```text
-y = 0
-→ gradient = predicted_probability
-```
-
-With PyTorch's default `reduction="mean"` over a batch of \(N\) samples:
+With PyTorch's default `reduction="mean"` over a batch of \(N\):
 
 \[
 \boxed{
@@ -1019,11 +816,11 @@ With PyTorch's default `reduction="mean"` over a batch of \(N\) samples:
 }
 \]
 
-The division by \(N\) comes from averaging the per-sample losses.
+for the standard one-hot interpretation of the labels.
 
 ---
 
-# 15. Backpropagation Through the CNN
+## 8. Backpropagation Through the CNN
 
 The notebook contains:
 
@@ -1031,16 +828,16 @@ The notebook contains:
 loss.backward()
 ```
 
-That one line hides the following chain:
+That line represents the chain:
 
 ```text
 Loss
  ↓
 Softmax + Cross Entropy
  ↓
-10 logits
+Logits
  ↓
-Linear classifier
+Linear
  ↓
 Flatten
  ↓
@@ -1055,33 +852,11 @@ MaxPool1
 ReLU1
  ↓
 Conv1
- ↓
-earlier inputs / parameters
 ```
 
 Backpropagation repeatedly applies the chain rule.
 
-If:
-
-\[
-L=L(a),\quad a=a(b),\quad b=b(c)
-\]
-
-then:
-
-\[
-\frac{\partial L}{\partial c}
-=
-\frac{\partial L}{\partial a}
-\frac{\partial a}{\partial b}
-\frac{\partial b}{\partial c}
-\]
-
-Each layer receives an incoming gradient, computes the gradients needed for its own parameters, and passes another gradient to the previous layer.
-
----
-
-# 16. Linear Layer — Backward Pass
+### 8.1 Linear layer backward
 
 For one sample:
 
@@ -1092,80 +867,18 @@ z=Wf+b
 Let:
 
 \[
-g_z
-=
-\frac{\partial L}{\partial z}
+g_z=\frac{\partial L}{\partial z}
 \]
 
 Then:
 
-## 16.1 Gradient with respect to weights
-
-Each weight \(W_{k,j}\) contributes:
-
-\[
-z_k
-=
-\sum_j W_{k,j}f_j+b_k
-\]
-
-so:
-
-\[
-\frac{\partial z_k}{\partial W_{k,j}}
-=
-f_j
-\]
-
-Therefore:
-
 \[
 \boxed{
 \frac{\partial L}{\partial W}
 =
-g_z f^T
+g_zf^T
 }
 \]
-
-For a batch represented as:
-
-\[
-F\in\mathbb{R}^{N\times D}
-\]
-
-and:
-
-\[
-G_Z\in\mathbb{R}^{N\times C}
-\]
-
-PyTorch-style dimensions give:
-
-\[
-\boxed{
-\frac{\partial L}{\partial W}
-=
-G_Z^T F
-}
-\]
-
-where:
-
-\[
-W\in\mathbb{R}^{C\times D}
-\]
-
----
-
-## 16.2 Gradient with respect to bias
-
-Because:
-
-\[
-\frac{\partial z_k}{\partial b_k}=1
-\]
-
-for one sample:
 
 \[
 \boxed{
@@ -1175,23 +888,7 @@ g_z
 }
 \]
 
-For a batch:
-
-\[
-\boxed{
-\frac{\partial L}{\partial b}
-=
-\sum_{n=1}^{N}G_{Z,n}
-}
-\]
-
-with any batch averaging already included in \(G_Z\).
-
----
-
-## 16.3 Gradient with respect to input features
-
-To continue backward:
+and the gradient passed to the previous layer is:
 
 \[
 \boxed{
@@ -1201,205 +898,81 @@ W^Tg_z
 }
 \]
 
-This gradient is then passed to Flatten.
-
----
-
-# 17. Flatten — Backward Pass
-
-Forward:
-
-```text
-64 × 7 × 7
-    ↓
-3136
-```
-
-Flatten does not change values, only their arrangement.
-
-Therefore backward simply reverses the reshape:
-
-```text
-gradient shape:
-3136
-  ↓ reshape
-64 × 7 × 7
-```
-
-If:
+For a batch with:
 
 \[
-g_f
-=
-\frac{\partial L}{\partial f}
+F\in\mathbb{R}^{N\times D},
+\qquad
+G_Z\in\mathbb{R}^{N\times C}
 \]
 
-then the gradient before Flatten contains the exact same numbers, rearranged into the original tensor shape.
-
-Flatten introduces:
-
-\[
-\boxed{0\text{ additional arithmetic gradients}}
-\]
-
-and:
-
-\[
-\boxed{0\text{ parameter gradients}}
-\]
-
----
-
-# 18. Max Pooling — Backward Pass
-
-Consider:
-
-\[
-A=
-\begin{bmatrix}
-2&7\\
-4&3
-\end{bmatrix}
-\]
-
-Forward MaxPool gives:
-
-\[
-P=7
-\]
-
-because \(7\) is the maximum.
-
-Suppose the gradient arriving from the next layer is:
-
-\[
-\frac{\partial L}{\partial P}=g
-\]
-
-Only the location that produced the maximum receives that gradient:
+the weight gradient is:
 
 \[
 \boxed{
-\frac{\partial L}{\partial A}
+\frac{\partial L}{\partial W}
 =
-\begin{bmatrix}
-0&g\\
-0&0
-\end{bmatrix}
+G_Z^TF
 }
 \]
 
-Conceptually:
+with any averaging factor already contained in \(G_Z\).
+
+### 8.2 Flatten backward
+
+Flatten only restores the gradient to its previous shape:
 
 ```text
-Forward:
-remember which element won the maximum
-
-Backward:
-send the gradient only to that element
+N × 3136
+    ↓ reshape
+N × 64 × 7 × 7
 ```
 
-PyTorch stores the maximum locations needed for this backward routing.
+### 8.3 MaxPool backward
 
-If pooling windows overlap, gradient contributions may accumulate at an input location.
+Each pooled output sends its gradient to the input position that produced the selected maximum.
 
-MaxPool contains no learned weights, so there is no:
+All other positions in that pooling window receive zero from that output.
 
-\[
-\frac{\partial L}{\partial W_{\text{pool}}}
-\]
+### 8.4 ReLU backward
 
-to calculate.
-
----
-
-# 19. ReLU — Backward Pass
-
-Forward:
+If:
 
 \[
 A=\operatorname{ReLU}(Y)
 \]
 
-Suppose:
+and:
 
 \[
-G_A
-=
-\frac{\partial L}{\partial A}
+G_A=\frac{\partial L}{\partial A}
 \]
 
-Then:
+then:
 
 \[
 \boxed{
 G_Y
 =
-G_A
-\odot
-\mathbf{1}[Y>0]
+G_A\odot\mathbf{1}[Y>0]
 }
 \]
 
-where \(\odot\) means element-wise multiplication.
+### 8.5 Convolution backward
 
-Example:
+For readability, first assume:
 
-\[
-Y=
-\begin{bmatrix}
-2&-3\\
-4&-1
-\end{bmatrix}
-\]
+- one input channel,
+- one output channel,
+- stride \(1\),
+- no padding.
 
-and incoming gradient:
-
-\[
-G_A=
-\begin{bmatrix}
-5&6\\
-7&8
-\end{bmatrix}
-\]
-
-The derivative mask is:
-
-\[
-\mathbf{1}[Y>0]
-=
-\begin{bmatrix}
-1&0\\
-1&0
-\end{bmatrix}
-\]
-
-Therefore:
-
-\[
-G_Y=
-\begin{bmatrix}
-5&0\\
-7&0
-\end{bmatrix}
-\]
-
-Negative ReLU inputs block the gradient.
-
----
-
-# 20. Convolution — Backward Pass
-
-This is the main new gradient calculation introduced by CNNs.
-
-For clarity, first consider one input channel and one output channel with stride \(1\) and no padding:
+The forward operation is:
 
 \[
 Y_{i,j}
 =
-\sum_{u,v}
-W_{u,v}X_{i+u,j+v}
-+b
+\sum_{u,v}W_{u,v}X_{i+u,j+v}+b
 \]
 
 Let:
@@ -1410,89 +983,42 @@ G_{i,j}
 \frac{\partial L}{\partial Y_{i,j}}
 \]
 
-be the gradient arriving from the next layer.
-
-We need:
+We need gradients for:
 
 ```text
-1. dL/dW   → how should the kernel change?
-2. dL/db   → how should the bias change?
-3. dL/dX   → what gradient should be passed to the previous layer?
+kernel W
+bias b
+input X
 ```
 
----
+#### Kernel gradient
 
-# 21. Gradient with Respect to the Convolution Kernel
-
-For a single kernel element \(W_{u,v}\):
+Because:
 
 \[
-Y_{i,j}
-=
-\cdots
-+
-W_{u,v}X_{i+u,j+v}
-+\cdots
-\]
-
-so:
-
-\[
-\frac{\partial Y_{i,j}}
-{\partial W_{u,v}}
+\frac{\partial Y_{i,j}}{\partial W_{u,v}}
 =
 X_{i+u,j+v}
 \]
 
-By the chain rule:
-
-\[
-\frac{\partial L}
-{\partial W_{u,v}}
-=
-\sum_{i,j}
-\frac{\partial L}{\partial Y_{i,j}}
-\frac{\partial Y_{i,j}}{\partial W_{u,v}}
-\]
-
-Therefore:
+the chain rule gives:
 
 \[
 \boxed{
-\frac{\partial L}
-{\partial W_{u,v}}
+\frac{\partial L}{\partial W_{u,v}}
 =
 \sum_{i,j}
-G_{i,j}
-X_{i+u,j+v}
+G_{i,j}X_{i+u,j+v}
 }
 \]
 
-This equation is one of the most important mathematical consequences of **weight sharing**.
+This is the key mathematical effect of **weight sharing**:
 
-The same kernel weight is reused at many image locations.
+> the same kernel weight is used at many positions, so its gradient accumulates contributions from every position where it was used.
 
-Therefore its final gradient is the **sum of contributions from every location where that weight was used**.
+#### Bias gradient
 
----
-
-# 22. Gradient with Respect to Convolution Bias
-
-Bias is added to every output position:
-
-\[
-Y_{i,j}
-=
-\cdots+b
-\]
-
-Therefore:
-
-\[
-\frac{\partial Y_{i,j}}{\partial b}=1
-\]
-
-and:
+Because the same bias is added at every output position:
 
 \[
 \boxed{
@@ -1502,69 +1028,41 @@ and:
 }
 \]
 
-For multiple samples in a batch, the sum also extends over the batch dimension.
+#### Input gradient
 
-For multiple output channels, each output channel has its own bias.
+An input value can participate in several overlapping convolution windows.
 
----
-
-# 23. Gradient with Respect to the Convolution Input
-
-An input value can influence several overlapping convolution windows.
-
-Therefore its gradient must accumulate contributions from every output value that used it.
-
-A convenient algorithmic interpretation is:
-
-For every output position \((i,j)\):
+The most readable way to compute its gradient is a **scatter-add** view:
 
 ```text
-incoming gradient = G[i,j]
+For every output position (i, j):
 
-take the kernel W
-
-multiply W by G[i,j]
-
-add that result into the corresponding input window
+1. take G[i, j]
+2. multiply the kernel by G[i, j]
+3. add that matrix into the input-gradient region
+   that produced Y[i, j]
 ```
 
-Symbolically:
+Therefore each input value receives the sum of all gradient contributions from output values that depended on it.
+
+### 8.6 Multi-channel convolution gradients
+
+For a batch:
 
 \[
-\boxed{
-\frac{\partial L}{\partial X}
-=
-\text{accumulated contributions from }G\text{ weighted by }W
-}
-\]
-
-For stride \(1\), this accumulation resembles a convolution of the output gradient with a spatially flipped kernel when written in the traditional mathematical-convolution convention.
-
-In practical deep-learning implementations, it is safer to think in terms of the direct dependency:
-
-> Every input pixel receives the sum of gradient contributions from all output positions that depended on it.
-
----
-
-# 24. Multi-Channel Convolution Gradients
-
-For the general convolution:
-
-\[
-Y_{o,i,j}
+Y_{n,o,i,j}
 =
 b_o+
 \sum_c\sum_u\sum_v
 W_{o,c,u,v}
-X_{c,i+u,j+v}
+X_{n,c,i+u,j+v}
 \]
 
-the weight gradient becomes:
+the weight gradient is:
 
 \[
 \boxed{
-\frac{\partial L}
-{\partial W_{o,c,u,v}}
+\frac{\partial L}{\partial W_{o,c,u,v}}
 =
 \sum_{n,i,j}
 G_{n,o,i,j}
@@ -1572,9 +1070,7 @@ X_{n,c,i+u,j+v}
 }
 \]
 
-where \(n\) indexes the batch.
-
-The bias gradient is:
+and:
 
 \[
 \boxed{
@@ -1585,29 +1081,43 @@ G_{n,o,i,j}
 }
 \]
 
-The input gradient for channel \(c\) accumulates contributions from **all output channels** whose filters used that input channel.
+The input gradient for channel \(c\) accumulates contributions from every output channel whose filters used that input channel.
 
-This is exactly what happens in the notebook's second convolution:
+For the notebook's second convolution:
 
 ```text
 32 input channels
-        ↓
+    ↓
 64 filters
-        ↓
+    ↓
 64 output channels
 ```
 
-When backpropagating through that layer, each of the 32 input feature maps receives accumulated gradient contributions from all 64 output filters.
+each of the 32 input feature maps receives gradient contributions from all relevant output filters.
 
 ---
 
-# 25. A Complete Numerical Backward Example
+## 9. Complete Numerical Forward + Backward Example
 
-The reference reading provides manual forward examples.
+This compact example follows the same layer order as the real network:
 
-This section extends that style with a compact **forward + backward** example so that every major CNN gradient can be followed numerically.
+```text
+Conv
+ ↓
+ReLU
+ ↓
+MaxPool
+ ↓
+Linear
+ ↓
+Cross Entropy
+```
 
-We use:
+The dimensions are deliberately tiny so every calculation can be followed manually.
+
+### 9.1 Setup
+
+Input:
 
 \[
 X=
@@ -1634,129 +1144,55 @@ Convolution bias:
 b=0
 \]
 
-Settings:
+Use:
 
 ```text
 stride = 1
 padding = 0
 ```
 
-Then:
-
-```text
-Conv
- ↓
-ReLU
- ↓
-2×2 MaxPool
- ↓
-one scalar feature
- ↓
-Linear → 2 logits
- ↓
-Cross Entropy
-```
-
----
-
-# 26. Numerical Example — Convolution Forward
-
-The output size is:
+The convolution output has size:
 
 \[
 \frac{3-2}{1}+1=2
 \]
 
-so the convolution output is \(2\times2\).
+so \(Y\) is \(2\times2\).
 
-### Position (0,0)
+### 9.2 Convolution forward
 
-Input patch:
-
-\[
-\begin{bmatrix}
-1&2\\
-0&1
-\end{bmatrix}
-\]
-
-Therefore:
+The four output values are:
 
 \[
 Y_{0,0}
 =
 1(1)+2(-1)+0(0)+1(2)
-\]
-
-\[
-=1-2+0+2
-\]
-
-\[
-=1
-\]
-
-### Position (0,1)
-
-Patch:
-
-\[
-\begin{bmatrix}
-2&0\\
-1&3
-\end{bmatrix}
+=
+1
 \]
 
 \[
 Y_{0,1}
 =
 2(1)+0(-1)+1(0)+3(2)
-\]
-
-\[
-=2+6=8
-\]
-
-### Position (1,0)
-
-Patch:
-
-\[
-\begin{bmatrix}
-0&1\\
-2&1
-\end{bmatrix}
+=
+8
 \]
 
 \[
 Y_{1,0}
 =
 0(1)+1(-1)+2(0)+1(2)
-\]
-
-\[
-=-1+2=1
-\]
-
-### Position (1,1)
-
-Patch:
-
-\[
-\begin{bmatrix}
-1&3\\
-1&0
-\end{bmatrix}
+=
+1
 \]
 
 \[
 Y_{1,1}
 =
 1(1)+3(-1)+1(0)+0(2)
-\]
-
-\[
-=1-3=-2
+=
+-2
 \]
 
 Therefore:
@@ -1769,45 +1205,29 @@ Y=
 \end{bmatrix}
 \]
 
----
+### 9.3 ReLU and MaxPool forward
 
-# 27. Numerical Example — ReLU and MaxPool Forward
-
-Apply ReLU:
+ReLU gives:
 
 \[
 A=
-\operatorname{ReLU}(Y)
-=
 \begin{bmatrix}
 1&8\\
 1&0
 \end{bmatrix}
 \]
 
-Now apply a \(2\times2\) MaxPool:
+A \(2\times2\) MaxPool gives:
 
 \[
-P=\max(1,8,1,0)=8
+f=\max(1,8,1,0)=8
 \]
 
-The winning position is:
+The maximum came from position \((0,1)\).
 
-```text
-row 0, column 1
-```
+### 9.4 Linear classifier
 
-Flatten does nothing interesting here because there is already one value:
-
-\[
-f=[8]
-\]
-
----
-
-# 28. Numerical Example — Linear Classifier
-
-Use a two-class classifier:
+Use two output classes:
 
 \[
 W_{\text{fc}}
@@ -1815,12 +1235,8 @@ W_{\text{fc}}
 \begin{bmatrix}
 0.2\\
 -0.1
-\end{bmatrix}
-\]
-
-and:
-
-\[
+\end{bmatrix},
+\qquad
 b_{\text{fc}}
 =
 \begin{bmatrix}
@@ -1833,29 +1249,14 @@ Then:
 
 \[
 z=W_{\text{fc}}f+b_{\text{fc}}
-\]
-
-so:
-
-\[
-z_0=0.2(8)=1.6
-\]
-
-\[
-z_1=-0.1(8)=-0.8
-\]
-
-Thus:
-
-\[
-z=
+=
 \begin{bmatrix}
 1.6\\
 -0.8
 \end{bmatrix}
 \]
 
-Assume the correct class is class 0:
+Assume class 0 is correct:
 
 \[
 y=
@@ -1865,90 +1266,64 @@ y=
 \end{bmatrix}
 \]
 
----
-
-# 29. Numerical Example — Softmax and Loss
-
-Softmax:
+### 9.5 Softmax and loss
 
 \[
 p_0
 =
-\frac{e^{1.6}}
-{e^{1.6}+e^{-0.8}}
-\approx0.9168
+\frac{e^{1.6}}{e^{1.6}+e^{-0.8}}
+\approx
+0.9168
 \]
 
 \[
-p_1
-\approx0.0832
+p_1\approx0.0832
 \]
 
 Therefore:
 
 \[
-p
-\approx
+p\approx
 \begin{bmatrix}
 0.9168\\
 0.0832
 \end{bmatrix}
 \]
 
-Cross Entropy:
+and:
 
 \[
-L=-\log(0.9168)
-\approx0.0868
+L=-\log(0.9168)\approx0.0868
 \]
 
-Now the forward pass is complete.
+The forward pass is complete.
 
 ---
 
-# 30. Numerical Example — Start Backpropagation
+### 9.6 Start the backward pass
 
 For Softmax + Cross Entropy:
 
 \[
-\frac{\partial L}{\partial z}
+g_z
 =
 p-y
 \]
 
-Therefore:
+so:
 
 \[
-g_z
-=
-\begin{bmatrix}
-0.9168-1\\
-0.0832-0
-\end{bmatrix}
-\]
-
-\[
-\boxed{
 g_z
 \approx
 \begin{bmatrix}
 -0.0832\\
 0.0832
 \end{bmatrix}
-}
 \]
 
----
+### 9.7 Linear-layer gradients
 
-# 31. Numerical Example — Linear Layer Gradients
-
-Because:
-
-\[
-z=W_{\text{fc}}f+b_{\text{fc}}
-\]
-
-the weight gradient is:
+Weight gradient:
 
 \[
 \frac{\partial L}{\partial W_{\text{fc}}}
@@ -1956,22 +1331,7 @@ the weight gradient is:
 g_zf
 \]
 
-Since:
-
-\[
-f=8
-\]
-
-we get:
-
-\[
-\frac{\partial L}{\partial W_{\text{fc}}}
-\approx
-\begin{bmatrix}
--0.0832(8)\\
-0.0832(8)
-\end{bmatrix}
-\]
+With \(f=8\):
 
 \[
 \boxed{
@@ -1997,7 +1357,7 @@ Bias gradient:
 }
 \]
 
-Now calculate the gradient with respect to the pooled feature:
+Gradient with respect to the pooled feature:
 
 \[
 \frac{\partial L}{\partial f}
@@ -2007,50 +1367,29 @@ W_{\text{fc}}^Tg_z
 
 \[
 =
-0.2(-0.0832)
-+
-(-0.1)(0.0832)
+0.2(-0.0832)+(-0.1)(0.0832)
+\approx
+-0.0250
 \]
 
-\[
-=-0.01664-0.00832
-\]
+### 9.8 MaxPool backward
 
-\[
-\boxed{
-\frac{\partial L}{\partial f}
-\approx-0.02495
-}
-\]
+The forward maximum came from \(A_{0,1}=8\).
 
----
-
-# 32. Numerical Example — MaxPool Backward
-
-The MaxPool forward step selected:
-
-\[
-A_{0,1}=8
-\]
-
-Therefore the entire incoming gradient goes back to that location:
+Therefore:
 
 \[
 \frac{\partial L}{\partial A}
-=
+\approx
 \begin{bmatrix}
-0&-0.02495\\
+0&-0.0250\\
 0&0
 \end{bmatrix}
 \]
 
-All non-winning elements receive zero.
+### 9.9 ReLU backward
 
----
-
-# 33. Numerical Example — ReLU Backward
-
-Recall:
+The convolution output was:
 
 \[
 Y=
@@ -2060,7 +1399,7 @@ Y=
 \end{bmatrix}
 \]
 
-The ReLU derivative mask is:
+so the ReLU mask is:
 
 \[
 \mathbf{1}[Y>0]
@@ -2071,7 +1410,7 @@ The ReLU derivative mask is:
 \end{bmatrix}
 \]
 
-Therefore:
+Hence:
 
 \[
 \frac{\partial L}{\partial Y}
@@ -2079,220 +1418,166 @@ Therefore:
 \frac{\partial L}{\partial A}
 \odot
 \mathbf{1}[Y>0]
+\approx
+\begin{bmatrix}
+0&-0.0250\\
+0&0
+\end{bmatrix}
+\]
+
+Only \(Y_{0,1}\) carries a nonzero gradient.
+
+### 9.10 Kernel gradient
+
+The input patch that produced \(Y_{0,1}\) was:
+
+\[
+\begin{bmatrix}
+2&0\\
+1&3
+\end{bmatrix}
+\]
+
+Therefore:
+
+\[
+\frac{\partial L}{\partial W}
+=
+(-0.0250)
+\begin{bmatrix}
+2&0\\
+1&3
+\end{bmatrix}
 \]
 
 so:
 
 \[
 \boxed{
-\frac{\partial L}{\partial Y}
-=
-\begin{bmatrix}
-0&-0.02495\\
-0&0
-\end{bmatrix}
-}
-\]
-
-Only one convolution output currently carries gradient.
-
----
-
-# 34. Numerical Example — Kernel Gradient
-
-The only nonzero output gradient is:
-
-\[
-G_{0,1}=-0.02495
-\]
-
-The input patch that created \(Y_{0,1}\) was:
-
-\[
-\begin{bmatrix}
-2&0\\
-1&3
-\end{bmatrix}
-\]
-
-Therefore:
-
-\[
-\frac{\partial L}{\partial W}
-=
-G_{0,1}
-\begin{bmatrix}
-2&0\\
-1&3
-\end{bmatrix}
-\]
-
-\[
-=
--0.02495
-\begin{bmatrix}
-2&0\\
-1&3
-\end{bmatrix}
-\]
-
-Thus:
-
-\[
-\boxed{
 \frac{\partial L}{\partial W}
 \approx
 \begin{bmatrix}
--0.04990&0\\
--0.02495&-0.07486
+-0.0499&0\\
+-0.0250&-0.0749
 \end{bmatrix}
 }
 \]
 
-If multiple convolution output positions had nonzero gradients, the kernel gradient would be the **sum of all their patch contributions**.
+If several convolution outputs had nonzero gradients, their patch contributions would be added together.
 
-That is how shared weights learn from the entire image.
+### 9.11 Convolution bias gradient
 
----
-
-# 35. Numerical Example — Convolution Bias Gradient
-
-There is one nonzero output gradient:
-
-\[
--0.02495
-\]
-
-Therefore:
+Only one convolution output has a nonzero gradient, so:
 
 \[
 \boxed{
 \frac{\partial L}{\partial b}
-=
--0.02495
+\approx
+-0.0250
 }
 \]
 
-In a larger feature map, this would be the sum over all output spatial positions.
+### 9.12 Input gradient
 
----
-
-# 36. Numerical Example — Input Gradient
-
-The nonzero gradient came from convolution output position \((0,1)\).
-
-That output used the input patch:
+The nonzero gradient came from output position \((0,1)\), whose input patch used:
 
 ```text
-rows 0..1
+rows    0..1
 columns 1..2
 ```
 
-We multiply the kernel by:
+Multiply the kernel by the incoming gradient:
 
 \[
-G_{0,1}=-0.02495
-\]
-
-Kernel:
-
-\[
-W=
-\begin{bmatrix}
-1&-1\\
-0&2
-\end{bmatrix}
-\]
-
-Contribution to the corresponding input window:
-
-\[
--0.02495
+(-0.0250)
 \begin{bmatrix}
 1&-1\\
 0&2
 \end{bmatrix}
 =
 \begin{bmatrix}
--0.02495&0.02495\\
-0&-0.04990
+-0.0250&0.0250\\
+0&-0.0499
 \end{bmatrix}
 \]
 
-Place that contribution back into the correct location of the \(3\times3\) input-gradient matrix:
+Scatter this contribution back into the matching input region:
 
 \[
 \boxed{
 \frac{\partial L}{\partial X}
 \approx
 \begin{bmatrix}
-0&-0.02495&0.02495\\
-0&0&-0.04990\\
+0&-0.0250&0.0250\\
+0&0&-0.0499\\
 0&0&0
 \end{bmatrix}
 }
 \]
 
-With several nonzero output gradients, overlapping contributions would be added together.
+With several nonzero output gradients, overlapping contributions would be added.
 
 ---
 
-# 37. What `loss.backward()` Computes in Our Notebook
+## 10. What `loss.backward()` Computes in the Real CNN
 
-For the actual MNIST CNN:
+For the actual MNIST model:
 
 ```text
 CrossEntropyLoss
       ↓
-fc.weight.grad       shape = 10 × 3136
-fc.bias.grad         shape = 10
+fc.weight.grad       : 10 × 3136
+fc.bias.grad         : 10
       ↓
-reshape gradient
+reshape
       ↓
-Pool2 backward       shape = 64 × 14 × 14 before pooling
+Pool2 backward
       ↓
 ReLU2 backward
       ↓
-conv2.weight.grad    shape = 64 × 32 × 3 × 3
-conv2.bias.grad      shape = 64
+conv2.weight.grad    : 64 × 32 × 3 × 3
+conv2.bias.grad      : 64
       ↓
 Pool1 backward
       ↓
 ReLU1 backward
       ↓
-conv1.weight.grad    shape = 32 × 1 × 3 × 3
-conv1.bias.grad      shape = 32
+conv1.weight.grad    : 32 × 1 × 3 × 3
+conv1.bias.grad      : 32
 ```
 
-For a batch, each parameter gradient combines contributions from all examples in the batch.
+For a batch, each parameter gradient combines contributions from all examples.
 
-Because `CrossEntropyLoss()` uses mean reduction by default, the loss gradient is averaged across the batch before the SGD update.
+With `CrossEntropyLoss()` using its default mean reduction, the per-example contributions are averaged through the loss gradient.
 
 ---
 
-# 38. SGD Update
+## 11. SGD Update
 
 After:
 
 ```python
+optimizer.zero_grad()
+logits = model(images)
+loss = criterion(logits, labels)
 loss.backward()
-```
-
-PyTorch has stored gradients in:
-
-```python
-parameter.grad
-```
-
-Then:
-
-```python
 optimizer.step()
 ```
 
-performs the SGD update.
+the important steps are:
 
-For parameter \(\theta\):
+```text
+optimizer.zero_grad()
+→ clear gradients from the previous batch
+
+loss.backward()
+→ compute current gradients
+
+optimizer.step()
+→ update parameters
+```
+
+For a parameter \(\theta\), basic SGD performs:
 
 \[
 \boxed{
@@ -2305,83 +1590,37 @@ For parameter \(\theta\):
 }
 \]
 
-where:
+where \(\eta\) is the learning rate.
 
-\[
-\eta
-\]
-
-is the learning rate.
-
-The notebook uses:
-
-\[
-\eta=0.1
-\]
-
-Therefore the complete learning process is:
-
-```text
-Forward pass
-      ↓
-Compute logits
-      ↓
-Cross Entropy loss
-      ↓
-Backward pass
-      ↓
-Compute gradients for FC and convolution kernels
-      ↓
-SGD updates parameters
-      ↓
-Next batch
-```
+This completes one training step.
 
 ---
 
-# 39. Why Convolution Filters Learn Useful Features
+## 12. Why Convolution Learns Useful Features
 
-Initially, convolution filters contain random learned parameters.
+Convolution kernels begin as learned parameters with initial values; they do not start as hand-written edge or curve detectors.
 
-They do not begin as explicit edge or curve detectors.
-
-During training:
+Training repeatedly performs:
 
 ```text
-Kernel produces feature map
-      ↓
-Feature map affects later layers
-      ↓
-Later layers affect logits
-      ↓
-Logits affect Cross Entropy
-      ↓
-Cross Entropy creates gradient
-      ↓
-Gradient flows back to kernel
-      ↓
-Kernel changes
+Kernel
+ ↓
+Feature map
+ ↓
+Later layers
+ ↓
+Logits
+ ↓
+Cross Entropy
+ ↓
+Gradient
+ ↓
+Kernel update
 ```
 
-If changing a kernel weight would reduce classification loss, gradient descent pushes that weight in the corresponding direction.
+If changing a kernel weight would reduce the loss, gradient descent moves that weight in the corresponding direction.
 
-Over many examples, filters can become useful detectors for recurring local patterns.
-
-The first layer often responds to relatively simple local structures, while later layers operate on earlier feature maps and can combine them into more complex representations.
-
----
-
-# 40. Why Weight Sharing Matters During Backpropagation
-
-Consider one kernel weight:
-
-\[
-W_{u,v}
-\]
-
-The same value is used at many positions.
-
-Therefore:
+Because one kernel is reused across many spatial positions:
 
 \[
 \frac{\partial L}{\partial W_{u,v}}
@@ -2390,99 +1629,61 @@ Therefore:
 G_{i,j}X_{i+u,j+v}
 \]
 
-This means one parameter learns from many spatial locations.
+one shared parameter can learn from many image locations.
 
-Contrast this with a fully connected layer:
-
-```text
-one connection
-→ one independent weight
-```
-
-In convolution:
-
-```text
-many spatial connections
-→ one shared weight
-```
-
-This provides two important properties:
+This gives convolution two important properties:
 
 1. **Parameter efficiency**  
-   We do not need a different kernel for every image location.
+   The network does not need a different local detector at every position.
 
-2. **Translation-related feature reuse**  
-   A local pattern learned in one part of the image can also be detected elsewhere.
+2. **Feature reuse across location**  
+   A local pattern learned in one region can also be detected elsewhere.
 
----
+### Receptive field intuition
 
-# 41. Receptive Field Intuition
-
-A convolutional neuron only sees a local region initially.
-
-For the baseline model:
-
-```text
-Conv 3×3
-→ local neighborhood
-
-Pool 2×2
-→ combines nearby responses
-
-Conv 3×3
-→ combines information from earlier local regions
-
-Pool 2×2
-→ larger effective region
-```
+A first-layer convolution sees only a local region.
 
 As layers are stacked, later features depend on increasingly large regions of the original image.
 
-For this particular network, the theoretical receptive-field size of one final pooled spatial cell grows approximately as:
+For this baseline:
 
-```text
-Input pixel                : 1 × 1
-After Conv1 (3×3)          : 3 × 3
-After Pool1 (2×2, s=2)     : 4 × 4
-After Conv2 (3×3)          : 8 × 8
-After Pool2 (2×2, s=2)     : 10 × 10
-```
+| Stage | Receptive field | Effective jump |
+|---|---:|---:|
+| Input | \(1\times1\) | 1 |
+| Conv1 \(3\times3,\ s=1\) | \(3\times3\) | 1 |
+| Pool1 \(2\times2,\ s=2\) | \(4\times4\) | 2 |
+| Conv2 \(3\times3,\ s=1\) | \(8\times8\) | 2 |
+| Pool2 \(2\times2,\ s=2\) | \(10\times10\) | 4 |
 
-Thus the CNN progressively combines local information into higher-level spatial representations.
+This is how local processing becomes a hierarchical spatial representation.
 
 ---
 
-# 42. What Changed from MLP?
+## 13. What Changed from MLP?
 
-## Reused
-
-The following concepts are not new:
+### Reused
 
 ```text
 MNIST
-Train / validation / test
 Mini-batches
 ReLU
 Logits
 Cross Entropy
 Backpropagation
 SGD
+Train / validation / test
 Accuracy
 ```
 
-The final linear layer also uses the same mathematics as the earlier models.
+The final linear classifier also uses the same mathematics already seen in the MLP stage.
 
----
-
-## Added
-
-CNN introduces:
+### New in CNN
 
 ```text
 Spatial tensors
 Local connectivity
 Kernels / filters
-Parameter sharing
+Weight sharing
 Feature maps
 Channels
 Stride
@@ -2492,65 +1693,61 @@ Hierarchical spatial representation
 Convolution-specific gradients
 ```
 
-The main transition is:
+The main change is the **representation and feature-processing stage**:
 
 ```text
 MLP
-Image
+Raw image
  ↓
-Flatten raw pixels
+Flatten
  ↓
 Fully connected representation
 
-        ↓ introduce spatially structured operations
-
 CNN
-Image / feature maps
+Raw image
  ↓
 Local convolutional processing
  ↓
-Hierarchical spatial representation
+Spatial feature maps
+ ↓
+Hierarchical representation
  ↓
 Classification
 ```
 
 ---
 
-# 43. Notebook vs Documentation
+## 14. Notebook vs Documentation
 
-The two files intentionally have different roles.
+### `notebooks/05_cnn.ipynb`
 
-## `notebooks/05_cnn.ipynb`
-
-Use it to understand:
+Use the notebook to understand:
 
 ```text
-How to implement the architecture
-How tensors move through the model
+How to implement the CNN
+How tensor shapes change
 How to train it in PyTorch
 How to evaluate it
 How learned feature maps look
 ```
 
-It keeps code simple and lets autograd handle derivatives.
+It intentionally lets PyTorch autograd handle the derivatives.
 
----
-
-## `docs/05_cnn.md`
+### `docs/05_cnn.md`
 
 Use this document to understand:
 
 ```text
-What each CNN operation calculates
-Why tensor shapes change
+What each operation calculates
+Why the tensor shapes change
 How many parameters are learned
 How Cross Entropy creates the first gradient
-How gradient flows through Linear
-How gradient flows through Flatten
-How gradient flows through MaxPool
-How gradient flows through ReLU
-How kernel / bias / input gradients are calculated
-Why shared filters learn from many image locations
+How gradients pass through Linear
+How gradients pass through Flatten
+How gradients pass through MaxPool
+How gradients pass through ReLU
+How convolution kernel / bias / input gradients are formed
+Why shared filters accumulate gradient from many positions
 ```
 
 Together:
@@ -2565,50 +1762,50 @@ Documentation
 
 ---
 
-# 44. Key Takeaways
+## 15. Key Takeaways
 
-1. CNNs process image data using spatially structured operations instead of flattening immediately.
+1. CNNs process images with spatially structured operations instead of flattening immediately.
 
-2. A convolutional filter computes local weighted sums and reuses the same weights across image positions.
+2. Convolution uses local connectivity and reuses the same kernel across spatial positions.
 
 3. One filter spans all input channels and produces one output feature map.
 
-4. The number of filters determines the number of output channels.
+4. Kernel size, stride, and padding determine spatial output dimensions.
 
-5. Stride, padding, and kernel size determine the spatial output dimensions.
+5. ReLU introduces nonlinearity and blocks gradients where its input is non-positive.
 
-6. ReLU introduces nonlinearity and blocks gradients where its pre-activation is non-positive.
+6. MaxPool keeps a selected maximum during the forward pass and routes its backward gradient to that selected position.
 
-7. MaxPool keeps the maximum value during the forward pass and routes the backward gradient only to the stored maximum location.
+7. Flatten only reshapes values; its backward pass reshapes the gradient back.
 
-8. Flatten performs only a reshape; its backward pass reshapes the gradient back.
+8. The final linear classifier uses the same core mathematics as an MLP output layer.
 
-9. The final linear classifier uses the same forward and backward mathematics already encountered in MLPs.
-
-10. For Softmax + Cross Entropy:
+9. For Softmax + Cross Entropy:
 
 \[
+\boxed{
 \frac{\partial L}{\partial z}=p-y
+}
 \]
 
-for one sample, with the appropriate averaging factor when the batch loss is averaged.
+for one sample.
 
-11. For convolution, the kernel gradient is formed by combining input patches with the gradients of the output feature map:
+10. For convolution:
 
 \[
+\boxed{
 \frac{\partial L}{\partial W_{u,v}}
 =
 \sum_{i,j}
 G_{i,j}X_{i+u,j+v}
+}
 \]
 
-12. Shared convolution weights accumulate gradient contributions from every spatial location where they were used.
+so shared weights accumulate gradient contributions from all positions where they are used.
 
-13. The input gradient accumulates contributions from every convolution output that depended on each input value.
+11. `loss.backward()` performs the complete backward chain automatically.
 
-14. `loss.backward()` in PyTorch automatically performs this complete chain of derivatives.
-
-15. Our baseline CNN contains:
+12. The baseline CNN contains:
 
 \[
 \boxed{50,186}
@@ -2618,24 +1815,21 @@ trainable parameters.
 
 ---
 
-# Reference
-
-Primary forward-pass reference:
+## Reference
 
 **AI VIET NAM – AI Course 2025**  
 **_CNNs: Step-by-Step Examples_**  
 Nguyễn Phúc Thịnh and Đinh Quang Vinh
 
-Topics used from the reference include:
+Reference topics used here:
 
 - motivation for CNNs,
-- loss of explicit spatial structure after flattening,
 - convolution,
 - stride,
 - padding,
-- Max / Average Pooling,
+- pooling,
 - flattening,
 - image channels,
 - and manual forward-pass calculations.
 
-The backward-pass derivations and the complete numerical backward example in this document are additional companion material written to explain the operations that PyTorch autograd performs automatically in `notebooks/05_cnn.ipynb`.
+The backward-pass derivations and complete numerical backward example are companion material added to explain the operations hidden by PyTorch autograd.
