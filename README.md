@@ -7,6 +7,7 @@ The main goal is not only to achieve higher accuracy, but to understand:
 - how each model works,
 - what limitation motivates the next model,
 - which parts of the pipeline are reused,
+- how the data representation changes,
 - and what changes as the architecture becomes more powerful.
 
 The learning path is:
@@ -29,6 +30,34 @@ Vision Transformer
 
 Softmax Regression, MLP, CNN, and Vision Transformer are developed primarily on **MNIST**.
 
+## Experiment Scope
+
+The basic architecture progression continues through CNN and Vision Transformer, but the systematic experiments in this repository stop at the **MLP stage**.
+
+```text
+Softmax Regression
+    ↓
+Simple hyperparameter experiments
+
+MLP
+    ↓
+Deeper training / architecture experiments
+
+CNN
+    ↓
+Basic architecture study only
+
+Vision Transformer
+    ↓
+Basic architecture study only
+```
+
+Softmax Regression is used for small, controlled hyperparameter studies.
+
+MLP is the main experimental model. Its experiments are guided by the AI VIET NAM course material **“Insight into Multi-layer Perceptron” by Quang-Vinh Dinh**, including topics such as normalization, network width/depth, activation functions, parameter initialization, Batch Normalization, optimizer choice, and gradient behavior.
+
+Advanced CNN and Vision Transformer experiments are intentionally left for a future computer-vision repository using more complex datasets, where deeper architecture comparisons and modern training techniques are more meaningful.
+
 ## Repository Structure
 
 ```text
@@ -44,7 +73,7 @@ mnist-ai-classifier/
 - `docs/` — deeper theory, mathematical derivations, roadmap, and architectural explanations.
 - `notebooks/` — step-by-step learning, implementation, exploratory experiments, visualizations, and observations.
 - `src/` — clean reusable implementations extracted from the notebooks.
-- `experiments/` — more systematic experiments and model comparisons performed after the models are understood.
+- `experiments/` — systematic experiments for Softmax Regression and MLP after the basic models are understood.
 
 For the full project plan, architecture progression, milestones, and development workflow, see:
 
@@ -52,6 +81,7 @@ For the full project plan, architecture progression, milestones, and development
 docs/00_roadmap.md
 ```
 
+---
 
 ## Current Progress
 
@@ -97,44 +127,56 @@ docs/00_roadmap.md
 * [x] PyTorch implementation
 * [x] NumPy vs PyTorch comparison
 
-### Softmax Regression — Optimization & Experiments
+### Softmax Regression — Simple Experiments
+
+The Softmax experiment stage is intentionally small and focuses on basic training hyperparameters.
 
 * [ ] Establish a fixed baseline configuration
-* [ ] Compare SGD, SGD + Momentum, Nesterov, Adam, and AdamW
 * [ ] Experiment with learning rate
 * [ ] Experiment with batch size
 * [ ] Experiment with number of epochs
-* [ ] Add weight decay / L2 regularization
-* [ ] Add learning-rate scheduling
-* [ ] Add early stopping and best-model checkpointing
-* [ ] Experiment with label smoothing
-* [ ] Perform confusion-matrix and misclassification analysis
-* [ ] Compare convergence speed and final validation/test performance
-* [ ] Document optimization experiments and conclusions
-* [ ] Refactor final reusable Softmax code into `src/`
+* [ ] Optionally compare a small number of basic optimizer / regularization settings
+* [ ] Compare training and validation behavior
+* [ ] Document observations and conclusions
+
+The goal is to build intuition about optimization on a simple linear classifier before moving to deeper-network experiments.
 
 ### MLP — Basic Implementation
 
 * [x] Build a basic MLP for MNIST
 * [x] Add hidden layer(s) and nonlinear activation
 * [x] Train and evaluate the basic model
+* [x] Compare hidden-layer widths
+* [x] Compare different network depths
+* [x] Compare the MLP against Softmax Regression
 
-### MLP — Optimization & Experiments
+### MLP — Experiments
 
-* [ ] Establish a reproducible MLP baseline
-* [ ] Compare hidden-layer sizes and number of layers
-* [ ] Compare ReLU and GELU activations
-* [ ] Compare SGD, Adam, and AdamW
-* [ ] Tune learning rate and batch size
-* [ ] Add weight decay
-* [ ] Add Dropout
+The MLP is the main experimental architecture in this repository.
+
+The experiment plan is guided by the reference:
+
+```text
+AI VIET NAM – AI Course 2025
+"Insight into Multi-layer Perceptron"
+Quang-Vinh Dinh
+```
+
+Planned topics include:
+
+* [ ] Compare data-normalization strategies
+* [ ] Study hidden-layer width
+* [ ] Study network depth
+* [ ] Compare activation functions
+* [ ] Demonstrate activation-related problems such as dying ReLU where useful
+* [ ] Compare parameter-initialization strategies
 * [ ] Experiment with Batch Normalization
-* [ ] Add learning-rate scheduling
-* [ ] Add early stopping and checkpointing
-* [ ] Analyze overfitting and generalization
-* [ ] Compare optimized MLP against Softmax Regression
-* [ ] Document MLP theory, experiments, and conclusions
-* [ ] Refactor final reusable MLP code into `src/`
+* [ ] Compare basic optimizers such as SGD and Adam
+* [ ] Monitor gradient behavior in deeper MLPs
+* [ ] Relate normalization, activation, initialization, depth, and gradient flow
+* [ ] Document experiments and conclusions
+
+The purpose is not simply to find the highest MNIST accuracy, but to understand how important design and training choices affect the behavior of a deeper neural network.
 
 ### CNN — Basic Implementation
 
@@ -142,31 +184,33 @@ docs/00_roadmap.md
 * [x] Build a basic CNN in PyTorch
 * [x] Keep the original 2D image representation
 * [x] Train the CNN on MNIST
-* [x] Evaluate accuracy and confusion matrix
+* [x] Evaluate the basic model
 * [x] Compare CNN against MLP and Softmax Regression
 * [x] Document the basic CNN architecture
 * [x] Refactor basic CNN components into `src/`
 
-### CNN — Optimization & Experiments
+### CNN — Advanced Experiments
 
-* [ ] Tune number of convolutional layers and channels
-* [ ] Experiment with kernel size, stride, padding, and pooling
-* [ ] Add Batch Normalization
-* [ ] Add Dropout where appropriate
-* [ ] Compare Adam and AdamW
-* [ ] Tune learning rate and weight decay
-* [ ] Add learning-rate scheduling
-* [ ] Experiment with image normalization and data augmentation
-* [ ] Add early stopping and checkpointing
-* [ ] Analyze difficult and misclassified samples
-* [ ] Compare parameter count, training time, and test performance
-* [ ] Document optimized CNN experiments and conclusions
-* [ ] Refactor final optimized CNN into `src/`
+Advanced CNN experimentation is **outside the scope of this MNIST repository**.
+
+This repository uses the CNN stage to understand:
+
+```text
+Local connectivity
+Weight sharing
+Convolution
+Pooling
+Spatial feature maps
+Hierarchical feature extraction
+```
+
+Topics such as deeper CNN architecture studies, ResNet-style models, extensive augmentation, transfer learning, and modern CNN training strategies will be moved to a future computer-vision repository using more challenging datasets.
 
 ### Vision Transformer — Basic Implementation
 
-* [ ] Study patch embedding
-* [ ] Study positional encoding / positional embeddings
+* [ ] Study image patches
+* [ ] Study patch embeddings
+* [ ] Study positional embeddings
 * [ ] Study self-attention and multi-head attention
 * [ ] Study Transformer encoder blocks
 * [ ] Study the classification token / classification head
@@ -176,30 +220,79 @@ docs/00_roadmap.md
 * [ ] Document the basic ViT architecture
 * [ ] Refactor basic ViT components into `src/`
 
-### Vision Transformer — Optimization & Experiments
+### Vision Transformer — Advanced Experiments
 
-* [ ] Tune patch size
-* [ ] Tune embedding dimension
-* [ ] Tune number of attention heads
-* [ ] Tune number of Transformer encoder blocks
-* [ ] Tune MLP expansion ratio inside Transformer blocks
-* [ ] Add Dropout / attention dropout
-* [ ] Use AdamW with weight decay
-* [ ] Add learning-rate warmup and scheduling
-* [ ] Experiment with normalization and augmentation
-* [ ] Add early stopping and checkpointing
-* [ ] Analyze attention behavior where useful
-* [ ] Compare parameter count, training time, and final performance
-* [ ] Document optimized ViT experiments and conclusions
-* [ ] Refactor final optimized ViT into `src/`
+Advanced Vision Transformer experimentation is **outside the scope of this MNIST repository**.
 
-### Final Model Comparison
+The ViT stage is used to understand the architectural transition:
+
+```text
+Image
+    ↓
+Patches
+    ↓
+Patch embeddings
+    ↓
+Positional information
+    ↓
+Self-attention
+    ↓
+Transformer encoder
+    ↓
+Classification
+```
+
+Topics such as large-scale ViT tuning, advanced attention variants, modern augmentation, transfer learning, pretraining, and architecture comparisons will be explored later in a separate computer-vision repository with more appropriate datasets.
+
+### Final Architecture Comparison
+
+The final comparison in this repository focuses on the **basic models**, not heavily optimized versions.
 
 * [ ] Compare Softmax Regression, MLP, CNN, and ViT under a consistent evaluation setup
-* [ ] Compare validation/test accuracy
-* [ ] Compare precision, recall, F1-score, and confusion matrices
-* [ ] Compare convergence behavior
+* [ ] Compare validation / test accuracy
 * [ ] Compare parameter counts
-* [ ] Compare training and inference time
+* [ ] Compare training time where useful
+* [ ] Summarize how the input representation changes across models
 * [ ] Summarize strengths, limitations, and architectural differences
 * [ ] Produce final project conclusions
+
+The final goal is to make the progression clear:
+
+```text
+Softmax Regression
+Raw pixels
+    ↓
+Linear mapping
+
+        ↓ add nonlinear hidden representation
+
+MLP
+Flattened pixels
+    ↓
+Fully connected nonlinear representation
+
+        ↓ introduce spatially structured operations
+
+CNN
+Image / feature maps
+    ↓
+Local convolutional processing
+    ↓
+Hierarchical spatial representation
+
+        ↓ represent the image as tokens
+          and use attention-based interaction
+
+Vision Transformer
+Image patches
+    ↓
+Patch embeddings
+    ↓
+Self-attention
+    ↓
+Contextual token representation
+    ↓
+Classification
+```
+
+Advanced CNN and Vision Transformer experimentation is intentionally deferred to a future repository with more complex datasets.
