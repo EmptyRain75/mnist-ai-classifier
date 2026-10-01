@@ -168,37 +168,37 @@ Linear(3136 → 10)
 10 logits
 ```
 
-For a batch of size \(N\), PyTorch stores images as:
+For a batch of size $N$, PyTorch stores images as:
 
-\[
+$$
 (N,\ C,\ H,\ W)
-\]
+$$
 
 MNIST therefore enters the model as:
 
-\[
+$$
 (N,\ 1,\ 28,\ 28)
-\]
+$$
 
 where:
 
-- \(N\): batch size,
-- \(C=1\): grayscale channel,
-- \(H=W=28\): image height and width.
+- $N$: batch size,
+- $C=1$: grayscale channel,
+- $H=W=28$: image height and width.
 
 ### Shape tracking
 
 | Stage | Output shape |
 |---|---|
-| Input | \(N\times1\times28\times28\) |
-| Conv1 | \(N\times32\times28\times28\) |
-| ReLU1 | \(N\times32\times28\times28\) |
-| Pool1 | \(N\times32\times14\times14\) |
-| Conv2 | \(N\times64\times14\times14\) |
-| ReLU2 | \(N\times64\times14\times14\) |
-| Pool2 | \(N\times64\times7\times7\) |
-| Flatten | \(N\times3136\) |
-| Linear | \(N\times10\) |
+| Input | $N\times1\times28\times28$ |
+| Conv1 | $N\times32\times28\times28$ |
+| ReLU1 | $N\times32\times28\times28$ |
+| Pool1 | $N\times32\times14\times14$ |
+| Conv2 | $N\times64\times14\times14$ |
+| ReLU2 | $N\times64\times14\times14$ |
+| Pool2 | $N\times64\times7\times7$ |
+| Flatten | $N\times3136$ |
+| Linear | $N\times10$ |
 
 ---
 
@@ -208,23 +208,23 @@ where:
 
 A convolutional layer uses a small learnable matrix called a **kernel** or **filter**.
 
-For one input channel, stride \(1\), and no padding:
+For one input channel, stride $1$, and no padding:
 
-\[
+$$
 Y_{i,j}
 =
 \sum_{u=0}^{K_H-1}
 \sum_{v=0}^{K_W-1}
 W_{u,v}X_{i+u,j+v}
 +b
-\]
+$$
 
 where:
 
-- \(X\): input,
-- \(W\): kernel,
-- \(b\): bias,
-- \(Y\): output feature map.
+- $X$: input,
+- $W$: kernel,
+- $b$: bias,
+- $Y$: output feature map.
 
 Deep-learning libraries normally implement this as **cross-correlation**: the kernel is not flipped before the forward multiplication.
 
@@ -232,7 +232,7 @@ Deep-learning libraries normally implement this as **cross-correlation**: the ke
 
 Let:
 
-\[
+$$
 X=
 \begin{bmatrix}
 1&2&3\\
@@ -245,29 +245,29 @@ W=
 1&0\\
 0&1
 \end{bmatrix}
-\]
+$$
 
-with stride \(1\), no padding, and no bias.
+with stride $1$, no padding, and no bias.
 
 The top-left output is:
 
-\[
+$$
 Y_{0,0}
 =
 1(1)+2(0)+4(0)+5(1)
 =
 6
-\]
+$$
 
 Moving the same kernel across the input gives:
 
-\[
+$$
 Y=
 \begin{bmatrix}
 6&8\\
 12&14
 \end{bmatrix}
-\]
+$$
 
 The important point is that **the same kernel is reused at every position**.
 
@@ -325,25 +325,25 @@ Padding can:
 
 For height:
 
-\[
+$$
 H_{\text{out}}
 =
 \left\lfloor
 \frac{H_{\text{in}}+2P_H-K_H}{S_H}
 \right\rfloor
 +1
-\]
+$$
 
 For width:
 
-\[
+$$
 W_{\text{out}}
 =
 \left\lfloor
 \frac{W_{\text{in}}+2P_W-K_W}{S_W}
 \right\rfloor
 +1
-\]
+$$
 
 For the first convolution:
 
@@ -356,19 +356,19 @@ Stride  = 1
 
 so:
 
-\[
+$$
 H_{\text{out}}
 =
 \frac{28+2(1)-3}{1}+1
 =
 28
-\]
+$$
 
 and:
 
-\[
+$$
 W_{\text{out}}=28
-\]
+$$
 
 Therefore:
 
@@ -384,21 +384,21 @@ Conv2d(1 → 32, 3×3, padding=1)
 
 A grayscale image has:
 
-\[
+$$
 C_{\text{in}}=1
-\]
+$$
 
 An RGB image has:
 
-\[
+$$
 C_{\text{in}}=3
-\]
+$$
 
 A convolutional filter spans **all input channels**.
 
 For a general multi-channel convolution:
 
-\[
+$$
 Y_{o,i,j}
 =
 b_o+
@@ -406,9 +406,9 @@ b_o+
 \sum_{u=0}^{K_H-1}
 \sum_{v=0}^{K_W-1}
 W_{o,c,u,v}X_{c,i+u,j+v}
-\]
+$$
 
-where \(o\) indexes the output channel.
+where $o$ indexes the output channel.
 
 One filter produces one output feature map.
 
@@ -440,14 +440,14 @@ Each of those 64 filters spans all 32 input channels.
 
 For a standard `Conv2d` layer with bias:
 
-\[
+$$
 \text{parameters}
 =
 C_{\text{out}}
 (C_{\text{in}}K_HK_W+1)
-\]
+$$
 
-The \(+1\) represents one bias per output channel.
+The $+1$ represents one bias per output channel.
 
 ### Conv1
 
@@ -457,21 +457,21 @@ Conv2d(1 → 32, 3×3)
 
 Weights:
 
-\[
+$$
 32\times1\times3\times3=288
-\]
+$$
 
 Biases:
 
-\[
+$$
 32
-\]
+$$
 
 Total:
 
-\[
+$$
 \boxed{320}
-\]
+$$
 
 ### Conv2
 
@@ -481,29 +481,29 @@ Conv2d(32 → 64, 3×3)
 
 Weights:
 
-\[
+$$
 64\times32\times3\times3=18,432
-\]
+$$
 
 Biases:
 
-\[
+$$
 64
-\]
+$$
 
 Total:
 
-\[
+$$
 \boxed{18,496}
-\]
+$$
 
 ### Linear classifier
 
 The final feature vector has:
 
-\[
+$$
 64\times7\times7=3136
-\]
+$$
 
 values.
 
@@ -515,11 +515,11 @@ Linear(3136 → 10)
 
 the parameter count is:
 
-\[
+$$
 3136\times10+10
 =
 31,370
-\]
+$$
 
 ### Total
 
@@ -542,60 +542,60 @@ A major advantage of convolution is that the kernel parameters are reused across
 
 ReLU is:
 
-\[
+$$
 \operatorname{ReLU}(x)=\max(0,x)
-\]
+$$
 
 Example:
 
-\[
+$$
 [-2,\ 3,\ -1,\ 5]
 \rightarrow
 [0,\ 3,\ 0,\ 5]
-\]
+$$
 
 Its derivative is:
 
-\[
+$$
 \operatorname{ReLU}'(x)
 =
 \begin{cases}
 1,&x>0\\
 0,&x\le0
 \end{cases}
-\]
+$$
 
-If the incoming gradient is \(G\):
+If the incoming gradient is $G$:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial x}
 =
 G\odot\mathbf{1}[x>0]
 }
-\]
+$$
 
-where \(\odot\) denotes element-wise multiplication.
+where $\odot$ denotes element-wise multiplication.
 
-At \(x=0\), ReLU is not differentiable in the strict mathematical sense; PyTorch uses a gradient of zero there.
+At $x=0$, ReLU is not differentiable in the strict mathematical sense; PyTorch uses a gradient of zero there.
 
 ### 6.2 Max Pooling
 
 For:
 
-\[
+$$
 A=
 \begin{bmatrix}
 5&2\\
 3&7
 \end{bmatrix}
-\]
+$$
 
-a \(2\times2\) MaxPool produces:
+a $2\times2$ MaxPool produces:
 
-\[
+$$
 P=7
-\]
+$$
 
 The baseline uses:
 
@@ -615,13 +615,13 @@ MaxPool has no learnable parameters.
 
 Suppose:
 
-\[
+$$
 \frac{\partial L}{\partial P}=g
-\]
+$$
 
-Because \(7\) was the maximum:
+Because $7$ was the maximum:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial A}
 =
@@ -630,7 +630,7 @@ Because \(7\) was the maximum:
 0&g
 \end{bmatrix}
 }
-\]
+$$
 
 The gradient is routed to the position selected during the forward pass.
 
@@ -640,11 +640,11 @@ If pooling windows overlap, contributions can accumulate.
 
 Average Pooling computes:
 
-\[
+$$
 P=
 \frac{1}{K_HK_W}
 \sum_{\text{window}}X
-\]
+$$
 
 It is not used in this baseline, but it differs from MaxPool conceptually:
 
@@ -660,11 +660,11 @@ AveragePool
 
 After the second pooling layer:
 
-\[
+$$
 64\times7\times7
 \rightarrow
 3136
-\]
+$$
 
 Flatten changes only the shape.
 
@@ -694,31 +694,31 @@ Flatten has no parameters and performs no learned transformation.
 
 Let:
 
-\[
+$$
 f\in\mathbb{R}^{3136}
-\]
+$$
 
 be the flattened CNN feature vector.
 
 The final layer computes:
 
-\[
+$$
 z=Wf+b
-\]
+$$
 
 with:
 
-\[
+$$
 W\in\mathbb{R}^{10\times3136},
 \qquad
 b\in\mathbb{R}^{10}
-\]
+$$
 
 so:
 
-\[
+$$
 z\in\mathbb{R}^{10}
-\]
+$$
 
 The ten values are **logits**, one for each MNIST class.
 
@@ -726,34 +726,34 @@ The ten values are **logits**, one for each MNIST class.
 
 Softmax converts logits into probabilities:
 
-\[
+$$
 p_k
 =
 \frac{e^{z_k}}
 {\sum_j e^{z_j}}
-\]
+$$
 
 with:
 
-\[
+$$
 \sum_k p_k=1
-\]
+$$
 
 ### 7.3 Cross Entropy
 
-For one-hot target vector \(y\):
+For one-hot target vector $y$:
 
-\[
+$$
 L
 =
 -\sum_k y_k\log p_k
-\]
+$$
 
-If the correct class is \(c\):
+If the correct class is $c$:
 
-\[
+$$
 L=-\log p_c
-\]
+$$
 
 PyTorch's:
 
@@ -776,45 +776,45 @@ and should **not** apply Softmax inside the model before `CrossEntropyLoss`.
 
 For one sample:
 
-\[
+$$
 L
 =
 -\sum_k y_k z_k
 +
 \log\left(\sum_j e^{z_j}\right)
-\]
+$$
 
-Differentiating with respect to \(z_k\):
+Differentiating with respect to $z_k$:
 
-\[
+$$
 \frac{\partial L}{\partial z_k}
 =
 -y_k
 +
 \frac{e^{z_k}}{\sum_j e^{z_j}}
-\]
+$$
 
 Therefore:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial z_k}
 =
 p_k-y_k
 }
-\]
+$$
 
 This is the gradient that starts the backward pass.
 
-With PyTorch's default `reduction="mean"` over a batch of \(N\):
+With PyTorch's default `reduction="mean"` over a batch of $N$:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial z_{n,k}}
 =
 \frac{p_{n,k}-y_{n,k}}{N}
 }
-\]
+$$
 
 for the standard one-hot interpretation of the labels.
 
@@ -860,63 +860,63 @@ Backpropagation repeatedly applies the chain rule.
 
 For one sample:
 
-\[
+$$
 z=Wf+b
-\]
+$$
 
 Let:
 
-\[
+$$
 g_z=\frac{\partial L}{\partial z}
-\]
+$$
 
 Then:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W}
 =
 g_zf^T
 }
-\]
+$$
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial b}
 =
 g_z
 }
-\]
+$$
 
 and the gradient passed to the previous layer is:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial f}
 =
 W^Tg_z
 }
-\]
+$$
 
 For a batch with:
 
-\[
+$$
 F\in\mathbb{R}^{N\times D},
 \qquad
 G_Z\in\mathbb{R}^{N\times C}
-\]
+$$
 
 the weight gradient is:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W}
 =
 G_Z^TF
 }
-\]
+$$
 
-with any averaging factor already contained in \(G_Z\).
+with any averaging factor already contained in $G_Z$.
 
 ### 8.2 Flatten backward
 
@@ -938,25 +938,25 @@ All other positions in that pooling window receive zero from that output.
 
 If:
 
-\[
+$$
 A=\operatorname{ReLU}(Y)
-\]
+$$
 
 and:
 
-\[
+$$
 G_A=\frac{\partial L}{\partial A}
-\]
+$$
 
 then:
 
-\[
+$$
 \boxed{
 G_Y
 =
 G_A\odot\mathbf{1}[Y>0]
 }
-\]
+$$
 
 ### 8.5 Convolution backward
 
@@ -964,24 +964,24 @@ For readability, first assume:
 
 - one input channel,
 - one output channel,
-- stride \(1\),
+- stride $1$,
 - no padding.
 
 The forward operation is:
 
-\[
+$$
 Y_{i,j}
 =
 \sum_{u,v}W_{u,v}X_{i+u,j+v}+b
-\]
+$$
 
 Let:
 
-\[
+$$
 G_{i,j}
 =
 \frac{\partial L}{\partial Y_{i,j}}
-\]
+$$
 
 We need gradients for:
 
@@ -995,22 +995,22 @@ input X
 
 Because:
 
-\[
+$$
 \frac{\partial Y_{i,j}}{\partial W_{u,v}}
 =
 X_{i+u,j+v}
-\]
+$$
 
 the chain rule gives:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W_{u,v}}
 =
 \sum_{i,j}
 G_{i,j}X_{i+u,j+v}
 }
-\]
+$$
 
 This is the key mathematical effect of **weight sharing**:
 
@@ -1020,13 +1020,13 @@ This is the key mathematical effect of **weight sharing**:
 
 Because the same bias is added at every output position:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial b}
 =
 \sum_{i,j}G_{i,j}
 }
-\]
+$$
 
 #### Input gradient
 
@@ -1049,18 +1049,18 @@ Therefore each input value receives the sum of all gradient contributions from o
 
 For a batch:
 
-\[
+$$
 Y_{n,o,i,j}
 =
 b_o+
 \sum_c\sum_u\sum_v
 W_{o,c,u,v}
 X_{n,c,i+u,j+v}
-\]
+$$
 
 the weight gradient is:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W_{o,c,u,v}}
 =
@@ -1068,20 +1068,20 @@ the weight gradient is:
 G_{n,o,i,j}
 X_{n,c,i+u,j+v}
 }
-\]
+$$
 
 and:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial b_o}
 =
 \sum_{n,i,j}
 G_{n,o,i,j}
 }
-\]
+$$
 
-The input gradient for channel \(c\) accumulates contributions from every output channel whose filters used that input channel.
+The input gradient for channel $c$ accumulates contributions from every output channel whose filters used that input channel.
 
 For the notebook's second convolution:
 
@@ -1119,30 +1119,30 @@ The dimensions are deliberately tiny so every calculation can be followed manual
 
 Input:
 
-\[
+$$
 X=
 \begin{bmatrix}
 1&2&0\\
 0&1&3\\
 2&1&0
 \end{bmatrix}
-\]
+$$
 
 Kernel:
 
-\[
+$$
 W=
 \begin{bmatrix}
 1&-1\\
 0&2
 \end{bmatrix}
-\]
+$$
 
 Convolution bias:
 
-\[
+$$
 b=0
-\]
+$$
 
 Use:
 
@@ -1153,83 +1153,83 @@ padding = 0
 
 The convolution output has size:
 
-\[
+$$
 \frac{3-2}{1}+1=2
-\]
+$$
 
-so \(Y\) is \(2\times2\).
+so $Y$ is $2\times2$.
 
 ### 9.2 Convolution forward
 
 The four output values are:
 
-\[
+$$
 Y_{0,0}
 =
 1(1)+2(-1)+0(0)+1(2)
 =
 1
-\]
+$$
 
-\[
+$$
 Y_{0,1}
 =
 2(1)+0(-1)+1(0)+3(2)
 =
 8
-\]
+$$
 
-\[
+$$
 Y_{1,0}
 =
 0(1)+1(-1)+2(0)+1(2)
 =
 1
-\]
+$$
 
-\[
+$$
 Y_{1,1}
 =
 1(1)+3(-1)+1(0)+0(2)
 =
 -2
-\]
+$$
 
 Therefore:
 
-\[
+$$
 Y=
 \begin{bmatrix}
 1&8\\
 1&-2
 \end{bmatrix}
-\]
+$$
 
 ### 9.3 ReLU and MaxPool forward
 
 ReLU gives:
 
-\[
+$$
 A=
 \begin{bmatrix}
 1&8\\
 1&0
 \end{bmatrix}
-\]
+$$
 
-A \(2\times2\) MaxPool gives:
+A $2\times2$ MaxPool gives:
 
-\[
+$$
 f=\max(1,8,1,0)=8
-\]
+$$
 
-The maximum came from position \((0,1)\).
+The maximum came from position $(0,1)$.
 
 ### 9.4 Linear classifier
 
 Use two output classes:
 
-\[
+$$
 W_{\text{fc}}
 =
 \begin{bmatrix}
@@ -1243,58 +1243,58 @@ b_{\text{fc}}
 0\\
 0
 \end{bmatrix}
-\]
+$$
 
 Then:
 
-\[
+$$
 z=W_{\text{fc}}f+b_{\text{fc}}
 =
 \begin{bmatrix}
 1.6\\
 -0.8
 \end{bmatrix}
-\]
+$$
 
 Assume class 0 is correct:
 
-\[
+$$
 y=
 \begin{bmatrix}
 1\\
 0
 \end{bmatrix}
-\]
+$$
 
 ### 9.5 Softmax and loss
 
-\[
+$$
 p_0
 =
 \frac{e^{1.6}}{e^{1.6}+e^{-0.8}}
 \approx
 0.9168
-\]
+$$
 
-\[
+$$
 p_1\approx0.0832
-\]
+$$
 
 Therefore:
 
-\[
+$$
 p\approx
 \begin{bmatrix}
 0.9168\\
 0.0832
 \end{bmatrix}
-\]
+$$
 
 and:
 
-\[
+$$
 L=-\log(0.9168)\approx0.0868
-\]
+$$
 
 The forward pass is complete.
 
@@ -1304,36 +1304,36 @@ The forward pass is complete.
 
 For Softmax + Cross Entropy:
 
-\[
+$$
 g_z
 =
 p-y
-\]
+$$
 
 so:
 
-\[
+$$
 g_z
 \approx
 \begin{bmatrix}
 -0.0832\\
 0.0832
 \end{bmatrix}
-\]
+$$
 
 ### 9.7 Linear-layer gradients
 
 Weight gradient:
 
-\[
+$$
 \frac{\partial L}{\partial W_{\text{fc}}}
 =
 g_zf
-\]
+$$
 
-With \(f=8\):
+With $f=8$:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W_{\text{fc}}}
 \approx
@@ -1342,11 +1342,11 @@ With \(f=8\):
 0.6654
 \end{bmatrix}
 }
-\]
+$$
 
 Bias gradient:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial b_{\text{fc}}}
 \approx
@@ -1355,64 +1355,64 @@ Bias gradient:
 0.0832
 \end{bmatrix}
 }
-\]
+$$
 
 Gradient with respect to the pooled feature:
 
-\[
+$$
 \frac{\partial L}{\partial f}
 =
 W_{\text{fc}}^Tg_z
-\]
+$$
 
-\[
+$$
 =
 0.2(-0.0832)+(-0.1)(0.0832)
 \approx
 -0.0250
-\]
+$$
 
 ### 9.8 MaxPool backward
 
-The forward maximum came from \(A_{0,1}=8\).
+The forward maximum came from $A_{0,1}=8$.
 
 Therefore:
 
-\[
+$$
 \frac{\partial L}{\partial A}
 \approx
 \begin{bmatrix}
 0&-0.0250\\
 0&0
 \end{bmatrix}
-\]
+$$
 
 ### 9.9 ReLU backward
 
 The convolution output was:
 
-\[
+$$
 Y=
 \begin{bmatrix}
 1&8\\
 1&-2
 \end{bmatrix}
-\]
+$$
 
 so the ReLU mask is:
 
-\[
+$$
 \mathbf{1}[Y>0]
 =
 \begin{bmatrix}
 1&1\\
 1&0
 \end{bmatrix}
-\]
+$$
 
 Hence:
 
-\[
+$$
 \frac{\partial L}{\partial Y}
 =
 \frac{\partial L}{\partial A}
@@ -1423,24 +1423,24 @@ Hence:
 0&-0.0250\\
 0&0
 \end{bmatrix}
-\]
+$$
 
-Only \(Y_{0,1}\) carries a nonzero gradient.
+Only $Y_{0,1}$ carries a nonzero gradient.
 
 ### 9.10 Kernel gradient
 
-The input patch that produced \(Y_{0,1}\) was:
+The input patch that produced $Y_{0,1}$ was:
 
-\[
+$$
 \begin{bmatrix}
 2&0\\
 1&3
 \end{bmatrix}
-\]
+$$
 
 Therefore:
 
-\[
+$$
 \frac{\partial L}{\partial W}
 =
 (-0.0250)
@@ -1448,11 +1448,11 @@ Therefore:
 2&0\\
 1&3
 \end{bmatrix}
-\]
+$$
 
 so:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W}
 \approx
@@ -1461,7 +1461,7 @@ so:
 -0.0250&-0.0749
 \end{bmatrix}
 }
-\]
+$$
 
 If several convolution outputs had nonzero gradients, their patch contributions would be added together.
 
@@ -1469,17 +1469,17 @@ If several convolution outputs had nonzero gradients, their patch contributions 
 
 Only one convolution output has a nonzero gradient, so:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial b}
 \approx
 -0.0250
 }
-\]
+$$
 
 ### 9.12 Input gradient
 
-The nonzero gradient came from output position \((0,1)\), whose input patch used:
+The nonzero gradient came from output position $(0,1)$, whose input patch used:
 
 ```text
 rows    0..1
@@ -1488,7 +1488,7 @@ columns 1..2
 
 Multiply the kernel by the incoming gradient:
 
-\[
+$$
 (-0.0250)
 \begin{bmatrix}
 1&-1\\
@@ -1499,11 +1499,11 @@ Multiply the kernel by the incoming gradient:
 -0.0250&0.0250\\
 0&-0.0499
 \end{bmatrix}
-\]
+$$
 
 Scatter this contribution back into the matching input region:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial X}
 \approx
@@ -1513,7 +1513,7 @@ Scatter this contribution back into the matching input region:
 0&0&0
 \end{bmatrix}
 }
-\]
+$$
 
 With several nonzero output gradients, overlapping contributions would be added.
 
@@ -1577,9 +1577,9 @@ optimizer.step()
 → update parameters
 ```
 
-For a parameter \(\theta\), basic SGD performs:
+For a parameter $\theta$, basic SGD performs:
 
-\[
+$$
 \boxed{
 \theta
 \leftarrow
@@ -1588,9 +1588,9 @@ For a parameter \(\theta\), basic SGD performs:
 \eta
 \frac{\partial L}{\partial\theta}
 }
-\]
+$$
 
-where \(\eta\) is the learning rate.
+where $\eta$ is the learning rate.
 
 This completes one training step.
 
@@ -1622,12 +1622,12 @@ If changing a kernel weight would reduce the loss, gradient descent moves that w
 
 Because one kernel is reused across many spatial positions:
 
-\[
+$$
 \frac{\partial L}{\partial W_{u,v}}
 =
 \sum_{i,j}
 G_{i,j}X_{i+u,j+v}
-\]
+$$
 
 one shared parameter can learn from many image locations.
 
@@ -1649,11 +1649,11 @@ For this baseline:
 
 | Stage | Receptive field | Effective jump |
 |---|---:|---:|
-| Input | \(1\times1\) | 1 |
-| Conv1 \(3\times3,\ s=1\) | \(3\times3\) | 1 |
-| Pool1 \(2\times2,\ s=2\) | \(4\times4\) | 2 |
-| Conv2 \(3\times3,\ s=1\) | \(8\times8\) | 2 |
-| Pool2 \(2\times2,\ s=2\) | \(10\times10\) | 4 |
+| Input | $1\times1$ | 1 |
+| Conv1 $3\times3,\ s=1$ | $3\times3$ | 1 |
+| Pool1 $2\times2,\ s=2$ | $4\times4$ | 2 |
+| Conv2 $3\times3,\ s=1$ | $8\times8$ | 2 |
+| Pool2 $2\times2,\ s=2$ | $10\times10$ | 4 |
 
 This is how local processing becomes a hierarchical spatial representation.
 
@@ -1782,24 +1782,24 @@ Documentation
 
 9. For Softmax + Cross Entropy:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial z}=p-y
 }
-\]
+$$
 
 for one sample.
 
 10. For convolution:
 
-\[
+$$
 \boxed{
 \frac{\partial L}{\partial W_{u,v}}
 =
 \sum_{i,j}
 G_{i,j}X_{i+u,j+v}
 }
-\]
+$$
 
 so shared weights accumulate gradient contributions from all positions where they are used.
 
@@ -1807,9 +1807,9 @@ so shared weights accumulate gradient contributions from all positions where the
 
 12. The baseline CNN contains:
 
-\[
+$$
 \boxed{50,186}
-\]
+$$
 
 trainable parameters.
 
