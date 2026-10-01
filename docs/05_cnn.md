@@ -50,6 +50,8 @@ The reference explains CNN motivation, convolution, stride, padding, pooling, fl
 
 The **backward-pass derivations in this document are an added extension** to explain the calculations that PyTorch autograd performs automatically.
 
+> **GitHub rendering note:** mathematical expressions use GitHub-supported `$...$` for inline math and `$$...$$` for display math.
+
 ---
 
 ## 1. From MLP to CNN
@@ -524,7 +526,7 @@ $$
 ### Total
 
 | Layer | Parameters |
-|---|---:|
+| --- | ---: |
 | Conv1 | 320 |
 | Conv2 | 18,496 |
 | Linear | 31,370 |
@@ -1648,7 +1650,7 @@ As layers are stacked, later features depend on increasingly large regions of th
 For this baseline:
 
 | Stage | Receptive field | Effective jump |
-|---|---:|---:|
+| --- | ---: |---:|
 | Input | $1\times1$ | 1 |
 | Conv1 $3\times3,\ s=1$ | $3\times3$ | 1 |
 | Pool1 $2\times2,\ s=2$ | $4\times4$ | 2 |
