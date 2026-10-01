@@ -1,30 +1,34 @@
 # Experiments
 
-This folder is reserved for deeper and more systematic experiments performed after the basic model progression has been completed.
+This folder contains systematic experiments performed after the basic model implementations are understood.
 
-The main priority is to first build and understand the basic architectures:
+The purpose is not simply to maximize MNIST accuracy. Each experiment should investigate a specific training or modeling choice and observe how it affects model behavior.
+
+The experiment scope of this repository is:
 
 ```text
 Softmax Regression
         ↓
-        MLP
+Simple Hyperparameter Experiments
         ↓
-        CNN
+MLP
         ↓
-Vision Transformer
+Deeper Training / Architecture Experiments
 ```
 
-The goal of this folder is to revisit those models later and investigate **why modern training techniques are needed, what problems they solve, and how they affect optimization and generalization**.
+CNN and Vision Transformer are **not included in the advanced experiment scope of this repository**.
+
+They are implemented on MNIST to understand their basic architectures, but deeper CNN and ViT experimentation will be left for a future project using more complex datasets.
 
 ---
 
-## Planned Experiments
+# 1. Softmax Regression
 
-# 1. Softmax Regression — Hyperparameter Study
+Softmax Regression will be used for simple hyperparameter experiments.
 
-Systematically investigate how training configuration affects Softmax Regression.
+The goal is to understand how basic training choices affect a simple linear classifier before studying deeper neural networks.
 
-Possible variables include:
+Possible experiments include:
 
 ```text
 Learning rate
@@ -34,7 +38,7 @@ Optimizer
 Regularization
 ```
 
-Observe:
+Useful measurements:
 
 ```text
 Training loss
@@ -42,111 +46,189 @@ Validation loss
 Training accuracy
 Validation accuracy
 Convergence speed
-Training time
 ```
 
-The purpose is to understand how hyperparameters affect optimization before moving to deeper models.
+These experiments should remain simple.
+
+The purpose is mainly to build intuition about the training process before moving to MLPs.
 
 ---
 
-# 2. MLP — Vanishing Gradient Study
+# 2. Multi-Layer Perceptron
 
-Construct a sufficiently deep MLP to deliberately demonstrate the **vanishing gradient problem**.
+MLP will be the main experimental architecture in this repository.
 
-Rather than relying only on final accuracy, directly measure gradient flow through the network.
+The experiments will be guided primarily by:
 
 ```text
-Layer 1 → gradient norm
-Layer 2 → gradient norm
-Layer 3 → gradient norm
-...
-Layer N → gradient norm
+AI VIET NAM – AI Course 2025
+"Insight into Multi-layer Perceptron"
+Quang-Vinh Dinh
 ```
 
-Then investigate different techniques that improve deep-network training.
+The document studies the major decisions involved in training an MLP:
+
+```text
+Data normalization
+        ↓
+Network construction
+        ↓
+Parameter initialization
+        ↓
+Optimizer selection
+        ↓
+Loss function selection
+        ↓
+Metric selection
+```
+
+The MLP experiments will therefore investigate these components progressively rather than treating them as unrelated optimization tricks.
 
 ---
 
-## 2.1 Sigmoid vs ReLU
+## 2.1 Data Normalization
 
-Compare deep networks using:
+Compare different input normalization strategies such as:
 
 ```text
-Sigmoid
-   vs
-ReLU
+[0, 1]
+[-1, 1]
+Z-score normalization
 ```
 
-Sigmoid can saturate for large positive or negative inputs, causing derivatives to become very small.
-
-Repeated multiplication by small derivatives during backpropagation can cause gradients in early layers to shrink.
-
-ReLU avoids saturation on the positive side:
+Observe how normalization affects:
 
 ```text
-ReLU(x) = max(0, x)
+Training behavior
+Convergence
+Training accuracy
+Validation accuracy
+```
+
+---
+
+## 2.2 Hidden Layer Width
+
+Investigate how the number of neurons in a hidden layer affects the model.
+
+For example:
+
+```text
+Small hidden layer
+        vs
+Medium hidden layer
+        vs
+Large hidden layer
 ```
 
 Observe:
 
 ```text
-Gradient norms
-Activation distributions
-Training loss
-Validation loss
-Convergence speed
+Parameter count
+Training accuracy
+Validation accuracy
+Training time
+```
+
+The purpose is to understand how increasing model capacity affects an MLP.
+
+---
+
+## 2.3 Network Depth
+
+Compare MLPs with different numbers of hidden layers.
+
+```text
+1 hidden layer
+        ↓
+2 hidden layers
+        ↓
+3 hidden layers
+        ↓
+deeper MLP
+```
+
+Observe how increasing depth changes:
+
+```text
+Training behavior
 Accuracy
+Gradient behavior
+Optimization difficulty
+```
+
+This also provides the foundation for studying problems that appear when neural networks become deeper.
+
+---
+
+## 2.4 Activation Functions
+
+Compare different activation functions covered in the reference material.
+
+Examples include:
+
+```text
+Sigmoid
+Tanh
+ReLU
+Leaky ReLU
+ELU
+PReLU
+Swish
+GELU
+```
+
+Not every activation must necessarily receive a full experiment.
+
+The goal is to understand:
+
+```text
+Why nonlinear activations are needed
+        ↓
+How different activations behave
+        ↓
+How activation choice affects training
+```
+
+Particular attention can be given to problems such as:
+
+```text
+Sigmoid saturation
+Dying ReLU
 ```
 
 ---
 
-## 2.2 Xavier vs He / Kaiming Initialization
+## 2.5 Parameter Initialization
 
-Compare different initialization strategies:
+Investigate how initialization affects neural-network training.
+
+Possible comparisons include:
 
 ```text
-Default / poor initialization
+Simple / default initialization
         vs
 Xavier initialization
         vs
 He / Kaiming initialization
 ```
 
-### Xavier Initialization
-
-Designed to keep activation and gradient scales relatively stable across layers.
-
-Commonly used with activations such as:
+Observe:
 
 ```text
-Sigmoid
-Tanh
-```
-
-### He / Kaiming Initialization
-
-Designed for ReLU-style activations.
-
-Commonly used with:
-
-```text
-ReLU
-Leaky ReLU
-```
-
-Observe whether better initialization improves:
-
-```text
-Gradient flow
 Activation scale
+Gradient behavior
 Training stability
 Convergence
-Final performance
 ```
+
+Initialization experiments should be connected to the activation functions used by the network.
 
 ---
 
-## 2.3 Batch Normalization
+## 2.6 Batch Normalization
+
+Investigate the effect of adding Batch Normalization to deeper MLPs.
 
 Compare:
 
@@ -156,26 +238,20 @@ Without BatchNorm
 With BatchNorm
 ```
 
-Batch Normalization normalizes intermediate activations during training and introduces learned scale and shift parameters.
-
-Investigate its effect on:
+Observe:
 
 ```text
-Activation distributions
-Gradient flow
 Training stability
 Convergence speed
-Learning-rate sensitivity
+Activation behavior
 Validation performance
 ```
 
-The goal is to understand why BatchNorm often makes deeper networks easier to train.
-
 ---
 
-## 2.4 SGD vs Adam
+## 2.7 Optimizer Selection
 
-Compare:
+Compare basic optimizers such as:
 
 ```text
 SGD
@@ -187,332 +263,177 @@ Observe:
 
 ```text
 Training loss
-Validation loss
 Convergence speed
-Gradient behavior
-Final performance
+Validation performance
+Training stability
 ```
 
-Adam may improve optimization when gradients are small, noisy, or differently scaled across parameters.
-
-However, Adam should not automatically be treated as a direct solution to the underlying vanishing-gradient problem.
+The purpose is to understand how the parameter-update strategy affects training rather than simply selecting the optimizer that reaches the highest accuracy.
 
 ---
 
-## 2.5 Gradient Norm Monitoring
+## 2.8 Gradient Behavior
 
-Track gradient magnitude throughout the network.
+As the MLP becomes deeper, directly inspect gradient flow through the network.
 
-For each layer:
+For example:
 
 ```text
-Layer 1 → ||∇W₁||
-Layer 2 → ||∇W₂||
-Layer 3 → ||∇W₃||
+Layer 1 → gradient norm
+Layer 2 → gradient norm
+Layer 3 → gradient norm
 ...
-Layer N → ||∇Wₙ||
+Layer N → gradient norm
 ```
 
-This provides a direct way to observe gradient behavior.
+This can help demonstrate problems such as:
 
 ```text
 Vanishing gradients
-→ gradient norms approach 0
-
 Exploding gradients
-→ gradient norms become very large
 ```
 
-Possible visualizations:
+and connect those problems to earlier experiments involving:
 
 ```text
-Gradient norm vs layer depth
-Gradient norm vs epoch
-Gradient norm distribution
+Activation functions
+Initialization
+Normalization
+Network depth
 ```
-
-This will be one of the main tools used to **demonstrate** the vanishing-gradient problem instead of only inferring it from poor accuracy.
-
----
-
-## 2.6 Gradient Clipping / Gradient Normalization
-
-After monitoring gradient norms, investigate techniques for controlling unstable gradients.
-
-Possible methods:
-
-```text
-Gradient clipping by value
-Gradient clipping by norm
-Gradient normalization
-```
-
-Conceptually:
-
-```text
-if ||g|| > threshold:
-    scale gradient down
-```
-
-This is primarily useful for controlling **exploding gradients**.
-
-The experiment should distinguish between:
-
-```text
-Gradient monitoring
-→ measurement
-
-Gradient clipping / normalization
-→ intervention
-```
-
----
-
-## 2.7 Residual / Skip Connections
-
-Compare a normal deep network with a network containing residual connections.
-
-### Standard Network
-
-```text
-x
-↓
-Layer
-↓
-Layer
-↓
-Layer
-↓
-Output
-```
-
-### Residual Network
-
-```text
-x ───────────────┐
-↓                │
-Layer            │
-↓                │
-Layer            │
-↓                │
-+  ←─────────────┘
-↓
-Output
-```
-
-Instead of learning only:
-
-```text
-H(x)
-```
-
-a residual block learns:
-
-```text
-H(x) = F(x) + x
-```
-
-Residual connections provide shorter paths for both information and gradients.
-
-This introduces the core idea behind **ResNet**.
-
-Observe:
-
-```text
-Gradient flow
-Training stability
-Convergence
-Depth scalability
-Validation performance
-```
-
----
-
-## 2.8 Deep Supervision / Auxiliary Losses
-
-Normally, the final loss must propagate backward through the entire network:
-
-```text
-Input
- ↓
-Layer 1
- ↓
-Layer 2
- ↓
-Layer 3
- ↓
-Output
- ↓
-Main Loss
-```
-
-With **deep supervision**, intermediate layers receive additional prediction heads and auxiliary losses.
-
-```text
-Layer 1
-   ↓
-Layer 2 ─────→ Auxiliary Head → Auxiliary Loss
-   ↓
-Layer 3
-   ↓
-Layer 4 ─────→ Auxiliary Head → Auxiliary Loss
-   ↓
-Output
-   ↓
-Main Loss
-```
-
-The total objective can combine the losses:
-
-```text
-Total Loss
-=
-Main Loss
-+
-λ₁ × Auxiliary Loss 1
-+
-λ₂ × Auxiliary Loss 2
-```
-
-This gives earlier layers a more direct learning signal instead of requiring all gradient information to travel only from the final output.
-
-This technique may also be referred to as:
-
-```text
-Deep Supervision
-Auxiliary Losses
-Auxiliary Classifiers
-```
-
-Compare it with residual connections, since both can make deep networks easier to train, but they do so in different ways.
-
----
-
-## 2.9 Layer-wise Training
-
-Investigate training layers or blocks progressively instead of optimizing the entire deep network at once.
-
-Possible workflow:
-
-```text
-Train early layers
-        ↓
-Freeze learned layers
-        ↓
-Add / train deeper layers
-        ↓
-Unfreeze
-        ↓
-Joint fine-tuning
-```
-
-This is more accurately described as:
-
-```text
-Layer-wise training
-Layer-wise pretraining
-Progressive freezing / unfreezing
-```
-
-rather than standard fine-tuning.
-
-The experiment can investigate whether providing simpler learning stages improves optimization in deep networks.
 
 ---
 
 # Experiment Philosophy
 
-The goal is not simply to find which configuration gives the highest accuracy.
-
-Each experiment should answer a specific question:
+Each experiment should answer a small question.
 
 ```text
-What problem occurs?
+What are we changing?
         ↓
-Why does it occur?
+Why might it matter?
         ↓
-How can it be measured?
+What should we measure?
         ↓
-What technique may address it?
+What actually changes?
         ↓
-What changes after applying the technique?
+What did we learn?
 ```
 
-Where possible, experiments should change **one main variable at a time** while keeping the rest of the setup fixed.
+Where possible, change **one main variable at a time**.
 
-Useful measurements include:
+The goal is not:
 
 ```text
-Training loss
-Validation loss
-Training accuracy
-Validation accuracy
-Test accuracy
-Gradient norms
-Activation distributions
-Convergence speed
-Parameter count
-Training time
-Inference time
+"Which setup gives the highest MNIST accuracy?"
+```
+
+The goal is:
+
+```text
+"Why does this design or training choice change
+the behavior of the model?"
 ```
 
 ---
 
-# Current Priority
+# CNN and Vision Transformer
 
-These experiments are intentionally postponed until the basic architecture progression is complete.
+CNN and Vision Transformer are still part of the main learning progression:
 
 ```text
-CURRENT
-
-Basic MLP ✓
-    ↓
-Basic CNN
-    ↓
-Basic Vision Transformer
-    ↓
-Understand the complete model progression
+Softmax
+   ↓
+MLP
+   ↓
+CNN
+   ↓
+Vision Transformer
 ```
 
-Then return to this folder for deeper experiments:
+However, MNIST is being used primarily to make these architectures easy to understand and implement.
+
+For this repository:
 
 ```text
-LATER
+CNN
+→ learn convolution, local connectivity,
+  weight sharing, and spatial feature extraction
 
-Structured Experiments
-    ↓
-Softmax Hyperparameters
-    ↓
-Vanishing Gradient Demonstration
-    ↓
-Sigmoid vs ReLU
-    ↓
-Xavier / He Initialization
-    ↓
+ViT
+→ learn patches, embeddings,
+  self-attention, and Transformer encoders
+```
+
+Advanced experiments involving CNN and Vision Transformer are intentionally **out of scope**.
+
+Topics such as:
+
+```text
+Advanced CNN architectures
+ResNet studies
+Data augmentation strategies
+Transfer learning
+Advanced ViT variants
+Attention optimization
+Modern image-training techniques
+Large architecture comparisons
+```
+
+will be better explored in a separate, more advanced computer-vision repository using more challenging datasets.
+
+---
+
+# Current Plan
+
+```text
+Basic Architectures
+
+Softmax ✓
+   ↓
+MLP ✓
+   ↓
+CNN ✓
+   ↓
+Vision Transformer
+```
+
+Then:
+
+```text
+Experiments
+
+Softmax
+   ↓
+Simple hyperparameter study
+
+MLP
+   ↓
+Normalization
+   ↓
+Width / depth
+   ↓
+Activation functions
+   ↓
+Initialization
+   ↓
 Batch Normalization
-    ↓
-SGD vs Adam
-    ↓
-Gradient Norm Monitoring
-    ↓
-Gradient Clipping / Normalization
-    ↓
-Residual Connections
-    ↓
-Deep Supervision / Auxiliary Losses
-    ↓
-Layer-wise Training
+   ↓
+Optimizers
+   ↓
+Gradient behavior
 ```
 
-The purpose of this folder is therefore to move from:
+And later, in a separate project:
 
 ```text
-"How do I build the model?"
+Advanced Computer Vision Repository
+
+More complex datasets
+        ↓
+Advanced CNN experiments
+        ↓
+Advanced Vision Transformer experiments
 ```
 
-to:
-
-```text
-"Why is the model difficult to train,
-and what techniques make deep learning work?"
-```
+This keeps the current MNIST repository focused on **learning the progression of architectures and understanding fundamental neural-network training behavior**, without forcing advanced computer-vision experiments onto a dataset that is too simple for that purpose.
