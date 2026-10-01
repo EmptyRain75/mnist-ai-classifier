@@ -260,7 +260,6 @@ Extract spatial features first
 then flatten and classify
 ```
 
-The classifier after the CNN feature extractor can be a single linear layer or a deeper MLP.
 
 ---
 
