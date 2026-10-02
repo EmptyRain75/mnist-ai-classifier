@@ -2,7 +2,7 @@
 
 ## 1. Roadmap Philosophy
 
-This project follows a **progressive and modular approach**.
+This personal learning project follows a **progressive and modular approach**. Its purpose is to demonstrate understanding of Softmax Regression, MLP, CNN, and Vision Transformer, including their underlying mathematics. Supporting documents preserve the studied theory for future revision.
 
 Rather than treating Logistic Regression, Softmax Regression, MLP, CNN, and Vision Transformer as completely separate projects, each stage will build on concepts and components from the previous stage.
 
@@ -41,14 +41,12 @@ Extract Clean src/ Implementation
     ↓
 Write Supporting Documentation
     ↓
-Run Structured Experiments
-    ↓
-Analyze Results
+Evaluate / Analyze Results
     ↓
 Move to Next Architecture
 ```
 
-The notebooks contain the learning process and exploratory experiments, while the `experiments/` folder is used for more systematic and controlled evaluation after a model has been implemented and understood.
+The notebooks contain the learning process and exploratory experiments. After the basic architecture progression through ViT is complete, `experiments/` will contain simple controlled Softmax studies and deeper MLP studies. Advanced CNN and ViT experiments are outside this repository's scope and are deferred to a future computer-vision project using more complex datasets.
 
 Logistic Regression is a short binary-classification learning stage, while **Softmax Regression on MNIST is the first main project milestone**.
 
@@ -208,15 +206,14 @@ Architectural explanations
         ↓
 
 experiments/
-Controlled experiments
+Controlled Softmax / MLP experiments
 Systematic evaluation
-Model comparisons
-Broader analysis
+Training / architecture analysis
 ```
 
 The notebook experiments are primarily used while learning and developing the model.
 
-The `experiments/` folder is used later to test the model more systematically and provide a more complete picture of its behavior.
+The `experiments/` folder is used later for systematic Softmax and MLP studies. CNN and ViT remain basic architecture studies, with evaluation and architectural comparison in the learning notebooks and supporting documentation.
 
 A typical stage therefore follows:
 
@@ -233,15 +230,13 @@ Clean Source Implementation
    ↓
 Documentation
    ↓
-Structured Experiments
-   ↓
-Analysis
+Evaluation / Analysis
    ↓
 Next Model
 ```
 
 ---
-*Note: while doing this, I was in a rush to get the basics down, so the $experiments$ are left for later.
+**Current order:** complete the basic architectures through ViT first, then perform the structured Softmax and MLP experiments. Existing notebook experiments remain part of the learning record.
 
 # 5. Stage 0 — Foundations
 
@@ -447,14 +442,11 @@ Compare with NumPy version
 
 ```text
 Learning rate
-Epochs
+Epochs / full-batch iterations
 Batch size
-Initialization
-Training loss
-Validation loss
-Accuracy
-Confusion matrix
-Error analysis
+Optional basic optimizer / regularization settings
+Training and validation behavior
+Convergence speed
 ```
 
 ## Main Milestone
@@ -520,6 +512,22 @@ The development notebook investigates:
 Hidden-layer width
 Network depth
 ```
+
+## Structured Experiments
+
+MLP is the main experimental architecture. Later studies in `experiments/` are guided by AI VIET NAM's **“Insight into Multi-layer Perceptron” by Quang-Vinh Dinh**:
+
+```text
+Data normalization
+Width / depth
+Activation functions
+Parameter initialization
+Batch Normalization
+SGD vs Adam
+Gradient behavior in deeper networks
+```
+
+These studies connect training choices to model behavior and document observations and conclusions.
 
 ## Deliverables
 
@@ -605,7 +613,7 @@ Optimizer
 Evaluation
 ```
 
-## Planned Learning Topics
+## Basic Learning Topics
 
 ```text
 Image tensor representation
@@ -623,7 +631,7 @@ Hierarchical feature learning
 CNN inductive bias
 ```
 
-## Planned Development
+## Basic Development
 
 ```text
 Theory
@@ -638,26 +646,14 @@ Clean src implementation
  ↓
 CNN documentation
  ↓
-Structured CNN experiments
+Basic comparison with MLP and Softmax
 ```
 
-## Planned Experiments
+## Experiment Scope
 
-Possible structured experiments include:
+The CNN baseline is complete in `notebooks/05_cnn.ipynb`, `src/05_cnn.py`, and `docs/05_cnn.md`. This stage focuses on convolution, local connectivity, weight sharing, spatial representations, and the mathematics behind the operations.
 
-```text
-Number of convolutional channels
-Kernel size
-Network depth
-Pooling configuration
-SGD vs Adam
-Learning rate
-Regularization
-Data augmentation
-MLP vs CNN comparison
-```
-
-Not every experiment must be included; experiments will be selected based on what is useful for understanding the model.
+Advanced CNN architecture studies, extensive augmentation, regularization studies, and transfer learning are deferred to a future computer-vision repository with more challenging datasets.
 
 ---
 
@@ -697,6 +693,7 @@ Query / Key / Value
 Self-Attention
 Multi-Head Attention
 Transformer Encoder
+Classification Token / Head
 ```
 
 ## Reused Components
@@ -708,6 +705,18 @@ Loss
 Optimization
 Evaluation
 ```
+
+## Basic Deliverables
+
+```text
+notebooks/06_vit.ipynb
+docs/06_vit.md
+src/06_vit.py
+```
+
+Build, train, and evaluate a basic MNIST ViT, explain its mathematics and tensor representations, and compare it with the basic CNN, MLP, and Softmax models.
+
+Advanced ViT tuning, attention variants, augmentation, pretraining, and transfer learning are deferred to a future computer-vision repository.
 
 ---
 
@@ -841,11 +850,11 @@ This table will be updated as the implementation becomes more precise.
 
 # 13. Implementation Layers
 
-Each architecture should be developed in two layers where appropriate.
+The implementation progression uses two layers:
 
 ## Layer A — From Scratch
 
-Use NumPy to understand the underlying mathematics.
+Use NumPy for Logistic Regression and Softmax Regression to understand the underlying mathematics.
 
 ```text
 Manual computation
@@ -857,7 +866,7 @@ Manual parameter updates
 
 ## Layer B — PyTorch
 
-Use PyTorch to build a practical implementation.
+Use PyTorch for the Softmax framework comparison and the basic MLP, CNN, and ViT implementations. Explain their mathematics in the supporting documents; separate NumPy implementations of these deeper architectures are not required.
 
 ```text
 PyTorch modules
@@ -867,7 +876,7 @@ Autograd
 Optimizer
 ```
 
-The two implementations should be compared to verify that they behave consistently.
+Compare the NumPy and PyTorch Softmax implementations to understand what the framework automates and check their behavior.
 
 ---
 
@@ -897,7 +906,7 @@ These experiments may be informal and focus on one concept at a time.
 
 ## Structured Experiments
 
-Performed in the `experiments/` folder after the model has been implemented and understood.
+Performed in the `experiments/` folder for Softmax Regression and MLP after the basic architecture progression is complete.
 
 ```text
 Define Question
@@ -921,7 +930,7 @@ Structured experiments are intended to provide a broader and more systematic pic
 
 # 15. Final Model Comparison
 
-Once the major MNIST models have been implemented and systematically evaluated, the project will compare:
+Once the basic MNIST models have been implemented, compare them under a consistent evaluation setup:
 
 ```text
 Softmax Regression
@@ -930,23 +939,15 @@ CNN
 Vision Transformer
 ```
 
-Possible comparison metrics include:
+The main comparison records:
 
 ```text
-Training Accuracy
-Validation Accuracy
-Test Accuracy
-Precision
-Recall
-F1
-Confusion Matrix
-Training Loss
-Validation Loss
+Validation / Test Accuracy
 Parameter Count
-Training Time
-Inference Time
-Memory Usage
+Training Time (where useful)
 ```
+
+Include other metrics or error analysis only when they help explain the basic models. This comparison does not require advanced CNN or ViT optimization.
 
 The comparison should also include architectural differences:
 
@@ -1008,9 +1009,10 @@ Clean src Implementation
   ↓
 Documentation
   ↓
-Structured Experiments
-  ↓
-Model Comparison
+Evaluation / Architectural Comparison
 ```
 
 ---
+
+Structured experiments follow the basic architecture progression and cover only Softmax Regression and MLP. See the root README for the current progress checklist and `experiments/README.md` for the detailed experiment plan.
+
