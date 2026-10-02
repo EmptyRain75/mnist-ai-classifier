@@ -1,6 +1,8 @@
 # MNIST Image Classification — From Scratch to Deep Learning
 
-This repository is a progressive study of image classification, starting from simple linear models and moving toward modern deep learning architectures.
+This is a personal learning project: a progressive study of image classification, starting from simple linear models and moving toward modern deep learning architectures.
+
+Its purpose is to demonstrate my understanding of Softmax Regression, MLP, CNN, and Vision Transformer by working through their implementations, architectural ideas, and underlying mathematics. The supporting documents in `docs/` record the theory and mathematical details I have studied and serve as reference material for future revision when needed. The project develops this understanding progressively; the progress checklist below records which stages have been completed.
 
 The main goal is not only to achieve higher accuracy, but to understand:
 
@@ -131,13 +133,13 @@ docs/00_roadmap.md
 
 The Softmax experiment stage is intentionally small and focuses on basic training hyperparameters.
 
-* [ ] Establish a fixed baseline configuration
-* [ ] Experiment with learning rate
-* [ ] Experiment with batch size
-* [ ] Experiment with number of epochs
+* [x] Establish a fixed baseline configuration
+* [x] Experiment with learning rate
+* [x] Experiment with batch size
+* [x] Experiment with training duration (iterations / epochs)
 * [ ] Optionally compare a small number of basic optimizer / regularization settings
-* [ ] Compare training and validation behavior
-* [ ] Document observations and conclusions
+* [x] Compare training and validation behavior
+* [x] Document observations and conclusions
 
 The goal is to build intuition about optimization on a simple linear classifier before moving to deeper-network experiments.
 
@@ -165,8 +167,8 @@ Quang-Vinh Dinh
 Planned topics include:
 
 * [ ] Compare data-normalization strategies
-* [ ] Study hidden-layer width
-* [ ] Study network depth
+* [x] Study hidden-layer width
+* [x] Study network depth
 * [ ] Compare activation functions
 * [ ] Demonstrate activation-related problems such as dying ReLU where useful
 * [ ] Compare parameter-initialization strategies
@@ -208,12 +210,12 @@ Topics such as deeper CNN architecture studies, ResNet-style models, extensive a
 
 ### Vision Transformer — Basic Implementation
 
-* [ ] Study image patches
-* [ ] Study patch embeddings
-* [ ] Study positional embeddings
-* [ ] Study self-attention and multi-head attention
-* [ ] Study Transformer encoder blocks
-* [ ] Study the classification token / classification head
+* [x] Study image patches
+* [x] Study patch embeddings
+* [x] Study positional embeddings
+* [x] Study self-attention and multi-head attention
+* [x] Study Transformer encoder blocks
+* [x] Study the classification token / classification head
 * [ ] Build a basic ViT for MNIST in PyTorch
 * [ ] Train and evaluate the basic ViT
 * [ ] Compare ViT against CNN, MLP, and Softmax Regression
@@ -296,3 +298,4 @@ Classification
 ```
 
 Advanced CNN and Vision Transformer experimentation is intentionally deferred to a future repository with more complex datasets.
+
