@@ -84,7 +84,7 @@ For one head:
 
 $$
 S=\frac{QK^T}{\sqrt{d_h}},\qquad
-A=\operatorname{softmax}_{\text{row}}(S),\qquad
+A=\mathrm{softmax}_{\text{row}}(S),\qquad
 O=AV.
 $$
 
@@ -105,8 +105,8 @@ Attention weights depend on the current image and layer. They are activations co
 Four heads give four learned ways to combine token information. Each head sees all 17 tokens through 16-dimensional Q, K, and V vectors. Heads do not receive separate groups of patches.
 
 $$
-\operatorname{MSA}(U)
-=\operatorname{Concat}(O_1,O_2,O_3,O_4)W_O+b_O.
+\mathrm{MSA}(U)
+=\mathrm{Concat}(O_1,O_2,O_3,O_4)W_O+b_O.
 $$
 
 | Intermediate | Shape |
@@ -132,7 +132,7 @@ $$
 $$
 
 $$
-\operatorname{LN}(x)_j
+\mathrm{LN}(x)_j
 =\gamma_j\frac{x_j-\mu}{\sqrt{\sigma^2+\epsilon}}+\beta_j.
 $$
 
@@ -165,11 +165,11 @@ This helps information and gradients pass through stacked blocks, though it does
 Our block applies LayerNorm **before** each transformation, hence **pre-norm**:
 
 $$
-Z'=Z+\operatorname{MSA}(\operatorname{LN}_1(Z)),
+Z'=Z+\mathrm{MSA}(\mathrm{LN}_1(Z)),
 $$
 
 $$
-Z_{\text{out}}=Z'+\operatorname{FFN}(\operatorname{LN}_2(Z')).
+Z_{\text{out}}=Z'+\mathrm{FFN}(\mathrm{LN}_2(Z')).
 $$
 
 The unchanged branch carries the unnormalized input. The two LayerNorm modules have separate parameters. A final LayerNorm is applied after both encoder blocks, as in the ViT design [1].
@@ -179,8 +179,8 @@ The unchanged branch carries the unnormalized input. The two LayerNorm modules h
 The **feed-forward network (FFN)** is a small MLP applied independently to each token, with shared weights across positions:
 
 $$
-\operatorname{FFN}(u)
-=\operatorname{GELU}(uW_1+b_1)W_2+b_2.
+\mathrm{FFN}(u)
+=\mathrm{GELU}(uW_1+b_1)W_2+b_2.
 $$
 
 Its dimensions are $64\rightarrow128\rightarrow64$. Attention combines different tokens; the FFN mixes features within each token. Returning to 64 dimensions permits the residual addition.
@@ -188,7 +188,7 @@ Its dimensions are $64\rightarrow128\rightarrow64$. Attention combines different
 **GELU**, Gaussian Error Linear Unit, is the nonlinear activation [5]:
 
 $$
-\operatorname{GELU}(x)=x\Phi(x),
+\mathrm{GELU}(x)=x\Phi(x),
 $$
 
 where $\Phi(x)$ is the standard normal cumulative distribution function: the probability that a standard normal variable is at most $x$.
