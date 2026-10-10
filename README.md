@@ -216,11 +216,11 @@ Topics such as deeper CNN architecture studies, ResNet-style models, extensive a
 * [x] Study self-attention and multi-head attention
 * [x] Study Transformer encoder blocks
 * [x] Study the classification token / classification head
-* [ ] Build a basic ViT for MNIST in PyTorch
-* [ ] Train and evaluate the basic ViT
-* [ ] Compare ViT against CNN, MLP, and Softmax Regression
-* [ ] Document the basic ViT architecture
-* [ ] Refactor basic ViT components into `src/`
+* [x] Build a basic ViT for MNIST in PyTorch
+* [x] Train and evaluate the basic ViT
+* [x] Compare ViT against CNN, MLP, and Softmax Regression
+* [x] Document the basic ViT architecture
+* [x] Refactor basic ViT components into `src/`
 
 ### Vision Transformer — Advanced Experiments
 
